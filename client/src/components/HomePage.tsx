@@ -58,6 +58,10 @@ export const HomePage: React.FC<HomePageProps> = ({
     const [focusedUser, setFocusedUser] = useState<string | null>(null);
     const [isStatsHovered, setIsStatsHovered] = useState(false);
 
+    // Permission State
+    const [cameraAllowed, setCameraAllowed] = useState(false);
+    const [micAllowed, setMicAllowed] = useState(false);
+
     useEffect(() => {
         if (!socket) return;
 
@@ -85,29 +89,22 @@ export const HomePage: React.FC<HomePageProps> = ({
     }, [activeSection, leaderboardType]);
 
     const handleJoinRoom = async () => {
-        // PERMISSION CHECK: Ask for camera/mic BEFORE joining queue
-        try {
-            if (matchType !== 'text') { // Only needed for video modes
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                // If successful, stop the tracks immediately - we just wanted to verify permission
-                stream.getTracks().forEach(track => track.stop());
-            }
-
-            // Proceed if permission granted
-            const preferences: MatchPreferences = {
-                branch: preferredBranch || undefined,
-                gender: preferredGender || undefined,
-                language: preferredLanguage || undefined,
-                mood: mood || undefined,
-                mode: 'video', // Forced for now as per requirement
-                matchType
-            };
-            onJoinRoom(preferences);
-
-        } catch (err) {
-            console.error("Permission denied:", err);
-            onAlert("⚠️ You must allow Camera and Microphone permissions to join!");
+        // Enforce Toggles
+        if (matchType !== 'text' && (!cameraAllowed || !micAllowed)) {
+            onAlert("⚠️ You must enable both Camera and Microphone access above to join!");
+            return;
         }
+
+        // Proceed
+        const preferences: MatchPreferences = {
+            branch: preferredBranch || undefined,
+            gender: preferredGender || undefined,
+            language: preferredLanguage || undefined,
+            mood: mood || undefined,
+            mode: 'video',
+            matchType
+        };
+        onJoinRoom(preferences);
     };
 
     const handlePurchase = (packageId: string) => {
@@ -513,24 +510,74 @@ export const HomePage: React.FC<HomePageProps> = ({
                                 <span>📊</span> Dashboard
                             </button>
 
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                                        stream.getTracks().forEach(track => track.stop());
-                                        onAlert("✅ Camera and Microphone are connected and ready!");
-                                    } catch (err) {
-                                        console.error("Permission check failed:", err);
-                                        onAlert("⚠️ Permissions not granted. Please click 'Allow' in your browser pop-up or settings.");
-                                    }
-                                }}
-                                className="w-full bg-[#0f0f14] hover:bg-[#1a1a24] text-white font-medium py-2.5 rounded-lg transition-all border border-white/5 hover:border-green-500/50 mt-3 flex items-center justify-center gap-2"
-                            >
-                                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                </svg>
-                                Check Camera & Mic
-                            </button>
+                            {/* Permission Toggles */}
+                            <div className="mt-4 space-y-3 bg-[#0f0f14] p-4 rounded-xl border border-white/5">
+                                <h3 className="text-sm font-medium text-gray-400 mb-2">Device Permissions</h3>
+
+                                {/* Camera Toggle */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2 rounded-lg ${cameraAllowed ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <span className="text-white font-medium">Camera Access</span>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            if (cameraAllowed) {
+                                                setCameraAllowed(false);
+                                            } else {
+                                                try {
+                                                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                                                    stream.getTracks().forEach(t => t.stop());
+                                                    setCameraAllowed(true);
+                                                } catch (err) {
+                                                    console.error("Camera denied:", err);
+                                                    onAlert("⚠️ Camera permission denied. Please allow it in settings.");
+                                                    setCameraAllowed(false);
+                                                }
+                                            }
+                                        }}
+                                        className={`w-12 h-6 rounded-full transition-colors duration-300 relative ${cameraAllowed ? 'bg-green-500' : 'bg-gray-700'}`}
+                                    >
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform duration-300 ${cameraAllowed ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+
+                                {/* Mic Toggle */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2 rounded-lg ${micAllowed ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                            </svg>
+                                        </div>
+                                        <span className="text-white font-medium">Microphone Access</span>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            if (micAllowed) {
+                                                setMicAllowed(false);
+                                            } else {
+                                                try {
+                                                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                                                    stream.getTracks().forEach(t => t.stop());
+                                                    setMicAllowed(true);
+                                                } catch (err) {
+                                                    console.error("Mic denied:", err);
+                                                    onAlert("⚠️ Microphone permission denied. Please allow it in settings.");
+                                                    setMicAllowed(false);
+                                                }
+                                            }
+                                        }}
+                                        className={`w-12 h-6 rounded-full transition-colors duration-300 relative ${micAllowed ? 'bg-green-500' : 'bg-gray-700'}`}
+                                    >
+                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform duration-300 ${micAllowed ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+                            </div>
 
                             <p
                                 onClick={() => setShowDonation(true)}
