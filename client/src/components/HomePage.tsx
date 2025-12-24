@@ -513,6 +513,25 @@ export const HomePage: React.FC<HomePageProps> = ({
                                 <span>📊</span> Dashboard
                             </button>
 
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                                        stream.getTracks().forEach(track => track.stop());
+                                        onAlert("✅ Camera and Microphone are connected and ready!");
+                                    } catch (err) {
+                                        console.error("Permission check failed:", err);
+                                        onAlert("⚠️ Permissions not granted. Please click 'Allow' in your browser pop-up or settings.");
+                                    }
+                                }}
+                                className="w-full bg-[#0f0f14] hover:bg-[#1a1a24] text-white font-medium py-2.5 rounded-lg transition-all border border-white/5 hover:border-green-500/50 mt-3 flex items-center justify-center gap-2"
+                            >
+                                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                </svg>
+                                Check Camera & Mic
+                            </button>
+
                             <p
                                 onClick={() => setShowDonation(true)}
                                 className="text-[#ec4899] hover:text-[#db2777] text-sm cursor-pointer hover:underline transition-colors font-medium flex items-center justify-center gap-1 mt-4"
