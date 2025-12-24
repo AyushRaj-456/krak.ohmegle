@@ -1,0 +1,170 @@
+<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Omega Symbol - More refined and elegant -->
+  <g transform="translate(280, 180)">
+    <!-- Outer Omega -->
+    <path d="M-60 -40 C-60 -80, -30 -100, 0 -100 C30 -100, 60 -80, 60 -40 C60 0, 45 20, 30 40 L30 60 L15 60 L15 45 C5 50, -5 50, -15 45 L-15 60 L-30 60 L-30 40 C-45 20, -60 0, -60 -40 Z" 
+          stroke="url(#omegaGradient)" 
+          stroke-width="2.5" 
+          fill="none"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+    
+    <!-- Inner detail -->
+    <path d="M-45 -40 C-45 -70, -20 -85, 0 -85 C20 -85, 45 -70, 45 -40 C45 -10, 35 5, 25 25" 
+          stroke="#7B8FA3" 
+          stroke-width="1.5" 
+          fill="none"
+          opacity="0.5"
+          stroke-linecap="round"/>
+  </g>
+
+  <!-- Eagle - Realistic soaring silhouette -->
+  <g transform="translate(450, 100)">
+    <!-- Wing span - realistic proportions -->
+    <path d="M-70 0 Q-65 -8, -55 -12 Q-45 -15, -35 -14 Q-25 -13, -15 -8 Q-5 -3, 0 0 Q5 -3, 15 -8 Q25 -13, 35 -14 Q45 -15, 55 -12 Q65 -8, 70 0" 
+          stroke="url(#eagleGradient)" 
+          stroke-width="2" 
+          fill="none"
+          stroke-linecap="round"/>
+    
+    <!-- Wing feathers detail -->
+    <path d="M-60 -5 L-58 5 M-50 -8 L-48 2 M-40 -10 L-38 0 M-30 -10 L-28 0 M-20 -8 L-18 2" 
+          stroke="#6B7FA3" 
+          stroke-width="1" 
+          opacity="0.6"
+          stroke-linecap="round"/>
+    <path d="M60 -5 L58 5 M50 -8 L48 2 M40 -10 L38 0 M30 -10 L28 0 M20 -8 L18 2" 
+          stroke="#6B7FA3" 
+          stroke-width="1" 
+          opacity="0.6"
+          stroke-linecap="round"/>
+    
+    <!-- Body -->
+    <ellipse cx="0" cy="0" rx="8" ry="18" fill="#8B9DC3" opacity="0.3"/>
+    <path d="M-4 -15 L-4 15 M4 -15 L4 15" 
+          stroke="#6B7FA3" 
+          stroke-width="1" 
+          opacity="0.4"/>
+    
+    <!-- Head and tail -->
+    <circle cx="0" cy="-20" r="5" fill="#8B9DC3" opacity="0.4"/>
+    <path d="M0 18 L0 28 L-3 30 L3 30 L0 28" 
+          stroke="#7B8FA3" 
+          stroke-width="1.5" 
+          fill="none"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+
+  <!-- Tea Cup - Elegant and refined -->
+  <g transform="translate(480, 300)">
+    <!-- Cup -->
+    <path d="M-35 -20 L-30 20 Q-25 28, 0 28 Q25 28, 30 20 L35 -20 Q35 -25, 30 -25 L-30 -25 Q-35 -25, -35 -20 Z" 
+          stroke="url(#cupGradient)" 
+          stroke-width="2" 
+          fill="none"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+    
+    <!-- Cup rim detail -->
+    <path d="M-30 -25 Q0 -27, 30 -25" 
+          stroke="#9BADC3" 
+          stroke-width="1" 
+          opacity="0.6"/>
+    
+    <!-- Handle - elegant curve -->
+    <path d="M35 -10 Q55 -10, 58 5 Q58 20, 35 20" 
+          stroke="url(#cupGradient)" 
+          stroke-width="2.5" 
+          fill="none"
+          stroke-linecap="round"/>
+    
+    <!-- Handle inner detail -->
+    <path d="M37 -8 Q52 -8, 54 5 Q54 18, 37 18" 
+          stroke="#7B8FA3" 
+          stroke-width="1" 
+          opacity="0.4"/>
+    
+    <!-- Saucer -->
+    <ellipse cx="0" cy="28" rx="45" ry="6" 
+             stroke="#7B8FA3" 
+             stroke-width="1.5" 
+             fill="none"
+             opacity="0.5"/>
+    
+    <!-- Tea level inside cup -->
+    <path d="M-28 0 Q0 2, 28 0" 
+          stroke="#8B9DC3" 
+          stroke-width="1" 
+          opacity="0.3"/>
+    
+    <!-- Steam - elegant wisps -->
+    <path d="M-20 -30 Q-25 -40, -22 -50 Q-19 -60, -24 -70" 
+          stroke="#FF9B7B" 
+          stroke-width="1.5" 
+          fill="none"
+          opacity="0.5"
+          stroke-linecap="round">
+      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="3s" repeatCount="indefinite"/>
+    </path>
+    <path d="M0 -30 Q-3 -42, 0 -54 Q3 -66, 0 -75" 
+          stroke="#FF9B7B" 
+          stroke-width="1.5" 
+          fill="none"
+          opacity="0.6"
+          stroke-linecap="round">
+      <animate attributeName="opacity" values="0.4;0.7;0.4" dur="2.5s" repeatCount="indefinite"/>
+    </path>
+    <path d="M20 -30 Q25 -40, 22 -50 Q19 -60, 24 -68" 
+          stroke="#FF9B7B" 
+          stroke-width="1.5" 
+          fill="none"
+          opacity="0.5"
+          stroke-linecap="round">
+      <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2.8s" repeatCount="indefinite"/>
+    </path>
+  </g>
+
+  <!-- Flowing connection lines - subtle and elegant -->
+  <path d="M340 160 Q380 140, 420 110" 
+        stroke="#FF8C6B" 
+        stroke-width="1.5" 
+        fill="none"
+        opacity="0.4"
+        stroke-linecap="round"
+        stroke-dasharray="3,6"/>
+  
+  <path d="M470 130 Q475 200, 475 260" 
+        stroke="#FF8C6B" 
+        stroke-width="1.5" 
+        fill="none"
+        opacity="0.4"
+        stroke-linecap="round"
+        stroke-dasharray="3,6"/>
+  
+  <!-- Subtle arrow -->
+  <path d="M395 130 L405 135 M405 135 L400 125" 
+        stroke="#FF8C6B" 
+        stroke-width="1.5" 
+        opacity="0.5"
+        stroke-linecap="round"/>
+
+  <!-- Gradients for depth -->
+  <defs>
+    <linearGradient id="omegaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#A8B8D8;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#7B8FA3;stop-opacity:0.6" />
+    </linearGradient>
+    
+    <linearGradient id="eagleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8B9DC3;stop-opacity:0.7" />
+      <stop offset="50%" style="stop-color:#A8B8D8;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#8B9DC3;stop-opacity:0.7" />
+    </linearGradient>
+    
+    <linearGradient id="cupGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#9BADC3;stop-opacity:0.7" />
+      <stop offset="100%" style="stop-color:#7B8FA3;stop-opacity:0.5" />
+    </linearGradient>
+  </defs>
+</svg>

@@ -1,0 +1,16 @@
+services:
+  # Backend Server
+  - type: web
+    name: sit-omegle-backend
+    env: node
+    root: server
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: CLIENT_URL
+        value: https://krak-ohmegle-czrdg9mxg-ayushs-projects-20d7a4c1.vercel.app
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false # You must manually add this value in Render Dashboard

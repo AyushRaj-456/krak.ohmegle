@@ -1,0 +1,186 @@
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Large Omega Symbol -->
+  <g id="omega-group">
+    <!-- Outer Omega -->
+    <path d="M250 200 C250 120, 310 80, 400 80 C490 80, 550 120, 550 200 C550 280, 520 320, 480 360 L500 440 L460 440 L440 370 C420 385, 380 385, 360 370 L340 440 L300 440 L320 360 C280 320, 250 280, 250 200 Z" 
+          stroke="url(#omegaGlow)" 
+          stroke-width="4" 
+          fill="none"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          opacity="0.15">
+      <animate attributeName="opacity" values="0.1;0.2;0.1" dur="4s" repeatCount="indefinite"/>
+    </path>
+    
+    <!-- Inner Omega detail -->
+    <path d="M280 200 C280 140, 330 110, 400 110 C470 110, 520 140, 520 200 C520 260, 500 290, 475 320" 
+          stroke="#6B7FA3" 
+          stroke-width="3" 
+          fill="none"
+          opacity="0.1"
+          stroke-linecap="round">
+      <animate attributeName="opacity" values="0.08;0.15;0.08" dur="4s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Tea Cup inside Omega -->
+    <g transform="translate(400, 240)">
+      <!-- Cup body -->
+      <path d="M-40 -20 L-35 20 Q-30 30, 0 30 Q30 30, 35 20 L40 -20 Q40 -25, 35 -25 L-35 -25 Q-40 -25, -40 -20 Z" 
+            stroke="url(#cupGlow)" 
+            stroke-width="2.5" 
+            fill="none"
+            opacity="0.12">
+        <animate attributeName="opacity" values="0.1;0.18;0.1" dur="3.5s" repeatCount="indefinite"/>
+      </path>
+      
+      <!-- Handle -->
+      <path d="M40 -5 Q60 -5, 62 8 Q62 21, 40 21" 
+            stroke="url(#cupGlow)" 
+            stroke-width="2.5" 
+            fill="none"
+            opacity="0.12">
+        <animate attributeName="opacity" values="0.1;0.18;0.1" dur="3.5s" repeatCount="indefinite"/>
+      </path>
+      
+      <!-- Saucer -->
+      <ellipse cx="0" cy="30" rx="50" ry="7" 
+               stroke="#7B8FA3" 
+               stroke-width="2" 
+               fill="none"
+               opacity="0.08">
+        <animate attributeName="opacity" values="0.06;0.12;0.06" dur="3.5s" repeatCount="indefinite"/>
+      </ellipse>
+      
+      <!-- Steam wisps -->
+      <path d="M-20 -30 Q-24 -42, -20 -54" 
+            stroke="#FF9B7B" 
+            stroke-width="1.5" 
+            fill="none"
+            opacity="0.1"
+            stroke-linecap="round">
+        <animate attributeName="opacity" values="0.05;0.15;0.05" dur="2.5s" repeatCount="indefinite"/>
+        <animate attributeName="d" 
+                 values="M-20 -30 Q-24 -42, -20 -54;M-20 -30 Q-22 -42, -18 -54;M-20 -30 Q-24 -42, -20 -54" 
+                 dur="3s" 
+                 repeatCount="indefinite"/>
+      </path>
+      <path d="M0 -30 Q-3 -45, 0 -58" 
+            stroke="#FF9B7B" 
+            stroke-width="1.5" 
+            fill="none"
+            opacity="0.12"
+            stroke-linecap="round">
+        <animate attributeName="opacity" values="0.08;0.18;0.08" dur="2.8s" repeatCount="indefinite"/>
+        <animate attributeName="d" 
+                 values="M0 -30 Q-3 -45, 0 -58;M0 -30 Q2 -45, 0 -58;M0 -30 Q-3 -45, 0 -58" 
+                 dur="2.5s" 
+                 repeatCount="indefinite"/>
+      </path>
+      <path d="M20 -30 Q24 -42, 20 -54" 
+            stroke="#FF9B7B" 
+            stroke-width="1.5" 
+            fill="none"
+            opacity="0.1"
+            stroke-linecap="round">
+        <animate attributeName="opacity" values="0.05;0.15;0.05" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="d" 
+                 values="M20 -30 Q24 -42, 20 -54;M20 -30 Q22 -42, 18 -54;M20 -30 Q24 -42, 20 -54" 
+                 dur="2.7s" 
+                 repeatCount="indefinite"/>
+      </path>
+    </g>
+  </g>
+
+  <!-- Flying Eagle on the right -->
+  <g id="eagle-group" transform="translate(620, 280)">
+    <!-- Wing span -->
+    <path d="M-90 0 Q-80 -12, -65 -18 Q-50 -22, -35 -20 Q-20 -18, -10 -10 Q-2 -4, 0 0 Q2 -4, 10 -10 Q20 -18, 35 -20 Q50 -22, 65 -18 Q80 -12, 90 0" 
+          stroke="url(#eagleGlow)" 
+          stroke-width="2.5" 
+          fill="none"
+          opacity="0.12"
+          stroke-linecap="round">
+      <animate attributeName="opacity" values="0.1;0.18;0.1" dur="3s" repeatCount="indefinite"/>
+      <!-- Gentle wing flap animation -->
+      <animateTransform
+        attributeName="transform"
+        type="rotate"
+        values="0 0 0; -3 0 0; 0 0 0"
+        dur="2s"
+        repeatCount="indefinite"/>
+    </path>
+    
+    <!-- Wing feather details -->
+    <g opacity="0.08">
+      <path d="M-75 -8 L-73 8 M-60 -14 L-58 4 M-45 -16 L-43 2 M-30 -16 L-28 2 M-15 -12 L-13 4" 
+            stroke="#6B7FA3" 
+            stroke-width="1.2" 
+            stroke-linecap="round">
+        <animate attributeName="opacity" values="0.06;0.12;0.06" dur="3s" repeatCount="indefinite"/>
+      </path>
+      <path d="M75 -8 L73 8 M60 -14 L58 4 M45 -16 L43 2 M30 -16 L28 2 M15 -12 L13 4" 
+            stroke="#6B7FA3" 
+            stroke-width="1.2" 
+            stroke-linecap="round">
+        <animate attributeName="opacity" values="0.06;0.12;0.06" dur="3s" repeatCount="indefinite"/>
+      </path>
+    </g>
+    
+    <!-- Body -->
+    <ellipse cx="0" cy="0" rx="10" ry="22" fill="#8B9DC3" opacity="0.06">
+      <animate attributeName="opacity" values="0.04;0.1;0.04" dur="3s" repeatCount="indefinite"/>
+    </ellipse>
+    
+    <!-- Head -->
+    <circle cx="0" cy="-25" r="7" fill="#8B9DC3" opacity="0.08">
+      <animate attributeName="opacity" values="0.06;0.12;0.06" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- Tail feathers -->
+    <path d="M0 22 L0 35 L-5 38 L5 38 L0 35" 
+          stroke="#7B8FA3" 
+          stroke-width="1.8" 
+          fill="none"
+          opacity="0.08"
+          stroke-linecap="round"
+          stroke-linejoin="round">
+      <animate attributeName="opacity" values="0.06;0.12;0.06" dur="3s" repeatCount="indefinite"/>
+    </path>
+
+    <!-- Floating animation for entire eagle -->
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      values="620 280; 620 270; 620 280"
+      dur="4s"
+      repeatCount="indefinite"/>
+  </g>
+
+  <!-- Gentle floating animation for entire logo -->
+  <animateTransform
+    attributeName="transform"
+    type="translate"
+    values="0 0; 0 -10; 0 0"
+    dur="6s"
+    repeatCount="indefinite"
+    additive="sum"/>
+
+  <!-- Gradients for glow effects -->
+  <defs>
+    <linearGradient id="omegaGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#A8B8D8;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#7B8FA3;stop-opacity:0.15" />
+    </linearGradient>
+    
+    <linearGradient id="eagleGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8B9DC3;stop-opacity:0.15" />
+      <stop offset="50%" style="stop-color:#A8B8D8;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#8B9DC3;stop-opacity:0.15" />
+    </linearGradient>
+    
+    <linearGradient id="cupGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#9BADC3;stop-opacity:0.18" />
+      <stop offset="100%" style="stop-color:#7B8FA3;stop-opacity:0.12" />
+    </linearGradient>
+  </defs>
+</svg>

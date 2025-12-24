@@ -1,0 +1,404 @@
+.payment-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.payment-modal {
+    background: #16161d;
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.payment-step {
+    text-align: center;
+}
+
+.payment-step h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(139, 92, 246, 0.1);
+    border-top-color: #8b5cf6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.package-info {
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.package-name {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #c4b5fd;
+}
+
+.package-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #8b5cf6;
+}
+
+.timer {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.2);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.timer-icon {
+    font-size: 1.25rem;
+}
+
+.timer-text {
+    color: #fde68a;
+    font-weight: 600;
+}
+
+.qr-section {
+    margin: 1.5rem 0;
+}
+
+.instruction {
+    color: #9ca3af;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.qr-container {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+}
+
+.qr-code {
+    width: 200px;
+    height: 200px;
+    display: block;
+}
+
+.or-text {
+    color: #6b7280;
+    margin: 1rem 0;
+    font-weight: 600;
+}
+
+.upi-id-section {
+    margin-top: 1.5rem;
+}
+
+.upi-id-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.upi-id {
+    font-family: 'Courier New', monospace;
+    color: #c4b5fd;
+    font-size: 1.1rem;
+}
+
+.copy-btn {
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: #c4b5fd;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.copy-btn:hover {
+    background: rgba(139, 92, 246, 0.3);
+}
+
+.next-btn,
+.submit-btn {
+    width: 100%;
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1.5rem;
+}
+
+.next-btn:hover,
+.submit-btn:hover:not(:disabled) {
+    background: #7c3aed;
+    transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.help-text {
+    margin-top: 1rem;
+    color: #9ca3af;
+    font-size: 0.85rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+}
+
+.warning-box {
+    background: rgba(251, 191, 36, 0.1);
+    border: 2px solid rgba(251, 191, 36, 0.3);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin: 1.5rem 0;
+    color: #fde68a;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.warning-box strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    color: #fbbf24;
+}
+
+.utr-info {
+    text-align: left;
+    margin-bottom: 1.5rem;
+}
+
+.utr-info p {
+    color: #9ca3af;
+    margin-bottom: 1rem;
+}
+
+.utr-help details {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    cursor: pointer;
+}
+
+.utr-help summary {
+    color: #8b5cf6;
+    font-weight: 600;
+    user-select: none;
+}
+
+.utr-help ul {
+    margin-top: 0.75rem;
+    padding-left: 1.5rem;
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+.utr-help li {
+    margin-bottom: 0.5rem;
+}
+
+.utr-input-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.utr-input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+.utr-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    font-size: 1.25rem;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.1em;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.utr-input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.char-count {
+    position: absolute;
+    right: 0.75rem;
+    bottom: -1.5rem;
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.back-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.back-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.back-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.error-message {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.success {
+    padding: 3rem 2rem;
+}
+
+.success-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.success-note {
+    color: #9ca3af;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.error {
+    padding: 3rem 2rem;
+}
+
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.error-text {
+    color: #fca5a5;
+    margin: 1rem 0;
+}
+
+.close-error-btn {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    margin-top: 1.5rem;
+    transition: all 0.2s;
+}
+
+.close-error-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+@media (max-width: 640px) {
+    .payment-modal {
+        padding: 1.5rem;
+    }
+
+    .qr-code {
+        width: 180px;
+        height: 180px;
+    }
+
+    .button-group {
+        grid-template-columns: 1fr;
+    }
+}
