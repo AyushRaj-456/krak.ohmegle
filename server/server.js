@@ -42,21 +42,15 @@ const app = express();
 const httpServer = createServer(app);
 
 // Update CORS for production
-const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    process.env.CLIENT_URL, // e.g. https://krak-ohmegle.vercel.app
-].filter(Boolean);
-
 const io = new Server(httpServer, {
     cors: {
-        origin: allowedOrigins.length > 0 ? allowedOrigins : "*",
+        origin: "*", // Allow all origins to prevent connection issues
         methods: ["GET", "POST"]
     }
 });
 
 app.use(cors({
-    origin: allowedOrigins.length > 0 ? allowedOrigins : "*"
+    origin: "*"
 }));
 app.use(express.json());
 
