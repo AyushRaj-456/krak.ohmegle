@@ -17,7 +17,7 @@ export class RoomManager {
         console.log(`Room created: ${roomId} for ${user1.name} and ${user2.name}`);
     }
 
-    handleDisconnect(userId) {
+    handleDisconnect(userId, reason = 'unknown') {
         // Find room where user is present
         for (const [roomId, room] of this.rooms) {
             if (room.user1.id === userId || room.user2.id === userId) {
@@ -26,7 +26,11 @@ export class RoomManager {
                 // Calculate duration
                 const duration = (Date.now() - room.startTime) / 1000;
 
-                partner.socket.emit('partner_disconnected');
+                console.log(`User ${userId} disconnected from room ${roomId}. Reason: ${reason}`);
+
+                // Notify partner with specific reason
+                partner.socket.emit('partner_disconnected', { reason });
+
                 this.rooms.delete(roomId);
 
                 return { duration, user1: room.user1, user2: room.user2 };

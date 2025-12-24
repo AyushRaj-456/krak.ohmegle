@@ -45,6 +45,8 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
     const [partnerDisconnected, setPartnerDisconnected] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+    const [isVideoOff, setIsVideoOff] = useState(false);
 
     // WebRTC Refs
     const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -158,6 +160,28 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
         setInputText('');
     };
 
+    const toggleMic = () => {
+        if (localVideoRef.current && localVideoRef.current.srcObject) {
+            const stream = localVideoRef.current.srcObject as MediaStream;
+            const audioTrack = stream.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = !audioTrack.enabled;
+                setIsMuted(!audioTrack.enabled);
+            }
+        }
+    };
+
+    const toggleVideo = () => {
+        if (localVideoRef.current && localVideoRef.current.srcObject) {
+            const stream = localVideoRef.current.srcObject as MediaStream;
+            const videoTrack = stream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                setIsVideoOff(!videoTrack.enabled);
+            }
+        }
+    };
+
     return (
         <div className="flex h-screen w-screen bg-black overflow-hidden flex-col md:flex-row">
             {/* Main Video Area */}
@@ -182,6 +206,28 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
 
                 {/* Controls Overlay */}
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4">
+                    <button
+                        onClick={toggleMic}
+                        className={`${isMuted ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-700 hover:bg-gray-600'} text-white p-4 rounded-full font-bold shadow-lg transform hover:scale-110 transition-all duration-200 flex items-center justify-center`}
+                        title={isMuted ? "Unmute" : "Mute"}
+                    >
+                        {isMuted ? (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" /></svg>
+                        ) : (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                        )}
+                    </button>
+                    <button
+                        onClick={toggleVideo}
+                        className={`${isVideoOff ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-700 hover:bg-gray-600'} text-white p-4 rounded-full font-bold shadow-lg transform hover:scale-110 transition-all duration-200 flex items-center justify-center`}
+                        title={isVideoOff ? "Turn Camera On" : "Turn Camera Off"}
+                    >
+                        {isVideoOff ? (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" /></svg>
+                        ) : (
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        )}
+                    </button>
                     <button
                         onClick={onSkip}
                         className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-3 rounded-full font-bold shadow-lg transform hover:scale-105 transition flex items-center gap-2"

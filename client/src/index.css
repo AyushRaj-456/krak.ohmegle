@@ -7,6 +7,8 @@
 body {
   background-color: #0a0a0f;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  zoom: 80%;
+  /* Default zoom to 80% as requested */
 }
 
 * {

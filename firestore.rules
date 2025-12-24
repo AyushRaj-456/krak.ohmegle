@@ -20,8 +20,8 @@ service cloud.firestore {
     
     // Users collection
     match /users/{userId} {
-      // Users can read their own profile
-      allow read: if isOwner(userId);
+      // Users can read all profiles (required for Leaderboard)
+      allow read: if isSignedIn();
       
       // Users can create their own profile
       allow create: if isOwner(userId);

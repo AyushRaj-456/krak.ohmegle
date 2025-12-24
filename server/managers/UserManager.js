@@ -181,7 +181,20 @@ export class UserManager {
         });
 
         socket.on('leave_queue', () => {
-            this.handleDisconnect(socket.id);
+            console.log(`User ${socket.id} leaving queue (keeping connection)`);
+            this.queueManager.removeUser(socket.id);
+        });
+
+        socket.on('stop_call', () => {
+            // User explicitly clicked "Stop"
+            const roomResult = this.roomManager.handleDisconnect(socket.id, 'stop');
+            if (roomResult) {
+                const { duration, user1, user2 } = roomResult;
+                if (duration > 0) {
+                    if (user1 && user1.uid) this.updateUserStats(user1.uid, duration, user2);
+                    if (user2 && user2.uid) this.updateUserStats(user2.uid, duration, user1);
+                }
+            }
         });
 
         // Get token balance
@@ -217,7 +230,7 @@ export class UserManager {
         socket.on('skip', () => {
             // Note: Token already deducted when match was made
             // Skip doesn't refund the token
-            const roomResult = this.roomManager.handleDisconnect(socket.id);
+            const roomResult = this.roomManager.handleDisconnect(socket.id, 'skip');
             if (roomResult) {
                 const { duration, user1, user2 } = roomResult;
                 if (duration > 0) {
@@ -311,7 +324,7 @@ export class UserManager {
         this.users.delete(socketId);
         this.queueManager.removeUser(socketId);
 
-        const roomResult = this.roomManager.handleDisconnect(socketId);
+        const roomResult = this.roomManager.handleDisconnect(socketId, 'disconnect');
         if (roomResult) {
             const { duration, user1, user2 } = roomResult;
             if (duration > 0) {
