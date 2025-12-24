@@ -304,7 +304,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                                             <div
                                                 key={user.uid || idx}
                                                 onClick={() => {
-                                                    if (leaderboardType === 'overall' && user.uid) {
+                                                    if (user.uid) {
                                                         setFocusedUser(focusedUser === user.uid ? null : user.uid);
                                                     }
                                                 }}
