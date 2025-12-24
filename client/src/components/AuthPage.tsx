@@ -76,7 +76,7 @@ export const AuthPage: React.FC<AuthPageProps> = () => {
     };
 
     return (
-        <div className="relative flex items-center justify-center min-h-screen bg-[#0a0a0f] p-6 overflow-hidden">
+        <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#0a0a0f] p-6 overflow-hidden">
             {/* Subtle blurred background elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-20 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl"></div>
@@ -85,7 +85,7 @@ export const AuthPage: React.FC<AuthPageProps> = () => {
             </div>
 
             {/* Auth card */}
-            <div className="relative w-full max-w-md bg-[#16161d]/80 backdrop-blur-xl rounded-2xl p-8 border border-white/5 shadow-2xl">
+            <div className="relative w-full max-w-md bg-[#16161d]/80 backdrop-blur-xl rounded-2xl p-8 border border-white/5 shadow-2xl z-10 mt-12">
 
                 {/* Header */}
                 <div className="text-center mb-8">
@@ -278,7 +278,7 @@ export const AuthPage: React.FC<AuthPageProps> = () => {
             </div>
 
             {/* Footer */}
-            <footer className="absolute bottom-6 w-full max-w-7xl mx-auto px-4 z-10">
+            <footer className="w-full max-w-md mt-16 z-10 text-center">
                 <div className="flex flex-col items-center justify-center space-y-4">
                     <p className="text-gray-500 font-medium tracking-[0.2em] text-xs uppercase hover:text-purple-400 transition-colors cursor-default">
                         A Project by Kraken
