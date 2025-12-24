@@ -221,7 +221,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
     };
 
     return (
-        <div className="flex h-screen w-screen bg-black overflow-hidden flex-col md:flex-row">
+        <div className="flex h-screen w-full bg-black overflow-hidden flex-col md:flex-row">
             {/* Main Video Area */}
             <div className="flex-1 relative bg-gray-900">
                 {/* Remote Video */}
@@ -268,17 +268,17 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                     </button>
                     <button
                         onClick={onSkip}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-8 py-3 rounded-full font-bold shadow-lg transform hover:scale-105 transition flex items-center gap-2"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 md:px-8 py-3 rounded-full font-bold shadow-lg transform hover:scale-105 transition flex items-center gap-2"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg>
-                        Skip
+                        <span className="hidden md:inline">Skip</span>
                     </button>
                     <button
                         onClick={onLeave}
-                        className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full font-bold shadow-lg transform hover:scale-105 transition flex items-center gap-2"
+                        className="bg-red-500 hover:bg-red-600 text-white px-6 md:px-8 py-3 rounded-full font-bold shadow-lg transform hover:scale-105 transition flex items-center gap-2"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                        Stop
+                        <span className="hidden md:inline">Stop</span>
                     </button>
                 </div>
 

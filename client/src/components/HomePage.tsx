@@ -84,16 +84,30 @@ export const HomePage: React.FC<HomePageProps> = ({
         }
     }, [activeSection, leaderboardType]);
 
-    const handleJoinRoom = () => {
-        const preferences: MatchPreferences = {
-            branch: preferredBranch || undefined,
-            gender: preferredGender || undefined,
-            language: preferredLanguage || undefined,
-            mood: mood || undefined,
-            mode: 'video',
-            matchType
-        };
-        onJoinRoom(preferences);
+    const handleJoinRoom = async () => {
+        // PERMISSION CHECK: Ask for camera/mic BEFORE joining queue
+        try {
+            if (matchType !== 'text') { // Only needed for video modes
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                // If successful, stop the tracks immediately - we just wanted to verify permission
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            // Proceed if permission granted
+            const preferences: MatchPreferences = {
+                branch: preferredBranch || undefined,
+                gender: preferredGender || undefined,
+                language: preferredLanguage || undefined,
+                mood: mood || undefined,
+                mode: 'video', // Forced for now as per requirement
+                matchType
+            };
+            onJoinRoom(preferences);
+
+        } catch (err) {
+            console.error("Permission denied:", err);
+            onAlert("⚠️ You must allow Camera and Microphone permissions to join!");
+        }
     };
 
     const handlePurchase = (packageId: string) => {
