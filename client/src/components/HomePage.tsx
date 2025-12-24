@@ -62,6 +62,32 @@ export const HomePage: React.FC<HomePageProps> = ({
     const [cameraAllowed, setCameraAllowed] = useState(false);
     const [micAllowed, setMicAllowed] = useState(false);
 
+    // Check permissions on mount and listen for changes
+    useEffect(() => {
+        const checkPermissions = async () => {
+            try {
+                // Check Camera
+                const camPerm = await navigator.permissions.query({ name: 'camera' as PermissionName });
+                setCameraAllowed(camPerm.state === 'granted');
+                camPerm.onchange = () => {
+                    setCameraAllowed(camPerm.state === 'granted');
+                };
+
+                // Check Mic
+                const micPerm = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+                setMicAllowed(micPerm.state === 'granted');
+                micPerm.onchange = () => {
+                    setMicAllowed(micPerm.state === 'granted');
+                };
+
+            } catch (err) {
+                console.error("Error checking permissions:", err);
+            }
+        };
+
+        checkPermissions();
+    }, []);
+
     useEffect(() => {
         if (!socket) return;
 
