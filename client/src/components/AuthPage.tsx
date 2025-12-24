@@ -276,6 +276,22 @@ export const AuthPage: React.FC<AuthPageProps> = () => {
                     </button>
                 )}
             </div>
+
+            {/* Footer */}
+            <footer className="absolute bottom-6 w-full max-w-7xl mx-auto px-4 z-10">
+                <div className="flex flex-col items-center justify-center space-y-4">
+                    <p className="text-gray-500 font-medium tracking-[0.2em] text-xs uppercase hover:text-purple-400 transition-colors cursor-default">
+                        A Project by Kraken
+                    </p>
+                    <div className="flex items-center justify-center gap-6 w-full max-w-lg mx-auto">
+                        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>
+                        <span className="text-gray-600 text-[10px] tracking-wider font-mono hover:text-purple-400 transition-colors cursor-default">
+                            &copy; 2025 krak.ohmegle
+                        </span>
+                        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 };

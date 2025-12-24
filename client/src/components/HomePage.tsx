@@ -286,19 +286,20 @@ export const HomePage: React.FC<HomePageProps> = ({
                                 ) : (
                                     leaderboardUsers.map((user, idx) => {
                                         const rank = idx + 1;
-                                        let badge = '🏅';
                                         let reward = null;
 
                                         if (leaderboardType === 'active') {
-                                            if (rank === 1) { badge = '🥇'; reward = '6 Free Trials'; }
-                                            else if (rank === 2) { badge = '🥈'; reward = '4 Free Trials'; }
-                                            else if (rank === 3) { badge = '🥉'; reward = '2 Free Trials'; }
-                                        } else {
-                                            // Badges still apply for overall, but no rewards
-                                            if (rank === 1) badge = '🥇';
-                                            else if (rank === 2) badge = '🥈';
-                                            else if (rank === 3) badge = '🥉';
+                                            if (rank === 1) reward = '6 Free Trials';
+                                            else if (rank === 2) reward = '4 Free Trials';
+                                            else if (rank === 3) reward = '2 Free Trials';
                                         }
+
+                                        const renderMedal = (r: number) => {
+                                            if (r === 1) return <span className="text-3xl">🥇</span>;
+                                            if (r === 2) return <span className="text-3xl">🥈</span>;
+                                            if (r === 3) return <span className="text-3xl">🥉</span>;
+                                            return null;
+                                        };
 
                                         return (
                                             <div
@@ -332,7 +333,9 @@ export const HomePage: React.FC<HomePageProps> = ({
                                                 </div>
 
                                                 <div className="flex items-center gap-4">
-                                                    <span className="text-3xl">{badge}</span>
+                                                    <div className="w-8 flex justify-center">
+                                                        {renderMedal(rank)}
+                                                    </div>
                                                     <div>
                                                         <div className="flex items-center gap-2">
                                                             <span className={`text-lg font-bold ${rank <= 3 ? 'text-yellow-400' : 'text-gray-300'
@@ -540,7 +543,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             <div className="mt-4 space-y-3 bg-[#0f0f14] p-4 rounded-xl border border-white/5">
                                 <h3 className="text-sm font-medium text-gray-400 mb-2">Device Permissions</h3>
 
-                                {/* Camera Toggle */}
+                                {/* Camera Status */}
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className={`p-2 rounded-lg ${cameraAllowed ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
@@ -552,26 +555,24 @@ export const HomePage: React.FC<HomePageProps> = ({
                                     </div>
                                     <button
                                         onClick={async () => {
-                                            if (cameraAllowed) {
-                                                onAlert("🔒 To disable Camera access, please click the site settings icon in your browser address bar and block the permission.");
-                                            } else {
+                                            if (!cameraAllowed) {
                                                 try {
-                                                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                                                    stream.getTracks().forEach(t => t.stop());
-                                                    // State updates automatically via permission listener
+                                                    await navigator.mediaDevices.getUserMedia({ video: true });
                                                 } catch (err) {
-                                                    console.error("Camera denied:", err);
                                                     onAlert("⚠️ Camera permission denied. Please allow it in settings.");
                                                 }
                                             }
                                         }}
-                                        className={`w-12 h-6 rounded-full transition-colors duration-300 relative ${cameraAllowed ? 'bg-green-500' : 'bg-gray-700'}`}
+                                        className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${cameraAllowed
+                                            ? 'bg-green-500/20 text-green-400 cursor-default'
+                                            : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                                            }`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform duration-300 ${cameraAllowed ? 'left-7' : 'left-1'}`} />
+                                        {cameraAllowed ? 'ON' : 'OFF'}
                                     </button>
                                 </div>
 
-                                {/* Mic Toggle */}
+                                {/* Mic Status */}
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <div className={`p-2 rounded-lg ${micAllowed ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
@@ -583,22 +584,20 @@ export const HomePage: React.FC<HomePageProps> = ({
                                     </div>
                                     <button
                                         onClick={async () => {
-                                            if (micAllowed) {
-                                                onAlert("🔒 To disable Microphone access, please click the site settings icon in your browser address bar and block the permission.");
-                                            } else {
+                                            if (!micAllowed) {
                                                 try {
-                                                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                                                    stream.getTracks().forEach(t => t.stop());
-                                                    // State updates automatically via permission listener
+                                                    await navigator.mediaDevices.getUserMedia({ audio: true });
                                                 } catch (err) {
-                                                    console.error("Mic denied:", err);
                                                     onAlert("⚠️ Microphone permission denied. Please allow it in settings.");
                                                 }
                                             }
                                         }}
-                                        className={`w-12 h-6 rounded-full transition-colors duration-300 relative ${micAllowed ? 'bg-green-500' : 'bg-gray-700'}`}
+                                        className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${micAllowed
+                                            ? 'bg-green-500/20 text-green-400 cursor-default'
+                                            : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                                            }`}
                                     >
-                                        <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-transform duration-300 ${micAllowed ? 'left-7' : 'left-1'}`} />
+                                        {micAllowed ? 'ON' : 'OFF'}
                                     </button>
                                 </div>
                             </div>
