@@ -553,16 +553,15 @@ export const HomePage: React.FC<HomePageProps> = ({
                                     <button
                                         onClick={async () => {
                                             if (cameraAllowed) {
-                                                setCameraAllowed(false);
+                                                onAlert("🔒 To disable Camera access, please click the site settings icon in your browser address bar and block the permission.");
                                             } else {
                                                 try {
                                                     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                                                     stream.getTracks().forEach(t => t.stop());
-                                                    setCameraAllowed(true);
+                                                    // State updates automatically via permission listener
                                                 } catch (err) {
                                                     console.error("Camera denied:", err);
                                                     onAlert("⚠️ Camera permission denied. Please allow it in settings.");
-                                                    setCameraAllowed(false);
                                                 }
                                             }
                                         }}
@@ -585,16 +584,15 @@ export const HomePage: React.FC<HomePageProps> = ({
                                     <button
                                         onClick={async () => {
                                             if (micAllowed) {
-                                                setMicAllowed(false);
+                                                onAlert("🔒 To disable Microphone access, please click the site settings icon in your browser address bar and block the permission.");
                                             } else {
                                                 try {
                                                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                                                     stream.getTracks().forEach(t => t.stop());
-                                                    setMicAllowed(true);
+                                                    // State updates automatically via permission listener
                                                 } catch (err) {
                                                     console.error("Mic denied:", err);
                                                     onAlert("⚠️ Microphone permission denied. Please allow it in settings.");
-                                                    setMicAllowed(false);
                                                 }
                                             }
                                         }}
