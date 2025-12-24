@@ -54,6 +54,8 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
     const peerRef = useRef<RTCPeerConnection | null>(null);
     const pendingCandidates = useRef<RTCIceCandidate[]>([]);
 
+    const pendingOffer = useRef<any>(null);
+
     useEffect(() => {
         // Handle Disconnect
         socket.on('partner_disconnected', () => {
@@ -69,7 +71,55 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
             setMessages(prev => [...prev, { sender: 'partner', text: msg.text, timestamp: Date.now() }]);
         });
 
-        // WebRTC Signaling
+        // WebRTC Signaling Listeners (Moved here to catch events while getUserMedia is pending)
+        socket.on('offer', async (offer) => {
+            console.log("Received offer");
+            if (!peerRef.current) {
+                console.log("Peer not ready, queueing offer");
+                pendingOffer.current = offer;
+                return;
+            }
+            try {
+                // If we are getting an offer, we are the answerer.
+                await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
+                const answer = await peerRef.current.createAnswer();
+                await peerRef.current.setLocalDescription(answer);
+                socket.emit('answer', { roomId: matchData.roomId, answer });
+
+                // Process any pending candidates that arrived before the offer
+                pendingCandidates.current.forEach(c => peerRef.current?.addIceCandidate(c));
+                pendingCandidates.current = [];
+            } catch (err) {
+                console.error("Error handling offer:", err);
+            }
+        });
+
+        socket.on('answer', async (answer) => {
+            console.log("Received answer");
+            if (!peerRef.current) return;
+            try {
+                await peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+                // Add pending candidates
+                pendingCandidates.current.forEach(c => peerRef.current?.addIceCandidate(c));
+                pendingCandidates.current = [];
+            } catch (err) {
+                console.error("Error handling answer:", err);
+            }
+        });
+
+        socket.on('ice_candidate', async (candidate) => {
+            if (peerRef.current && peerRef.current.remoteDescription) {
+                try {
+                    await peerRef.current.addIceCandidate(candidate);
+                } catch (e) {
+                    console.error("Error adding ice candidate:", e);
+                }
+            } else {
+                pendingCandidates.current.push(candidate);
+            }
+        });
+
+        // Initialize WebRTC
         setupWebRTC();
 
         return () => {
@@ -110,36 +160,24 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                 }
             };
 
-            // Socket Listeners for Signaling
-            socket.on('ice_candidate', async (candidate) => {
-                if (peer.remoteDescription) {
-                    await peer.addIceCandidate(candidate);
-                } else {
-                    pendingCandidates.current.push(candidate);
-                }
-            });
-
-            socket.on('answer', async (answer) => {
-                await peer.setRemoteDescription(new RTCSessionDescription(answer));
-                // Add pending candidates
-                pendingCandidates.current.forEach(c => peer.addIceCandidate(c));
-                pendingCandidates.current = [];
-            });
-
-            socket.on('offer', async (offer) => {
-                if (!peer) return; // Should allow re-negotiation but simple version implies initial offer only?
-                // Wait, if we are NOT initiator, we get offer.
+            // Handle queued offer if exists
+            if (pendingOffer.current) {
+                console.log("Processing queued offer");
+                const offer = pendingOffer.current;
                 await peer.setRemoteDescription(new RTCSessionDescription(offer));
                 const answer = await peer.createAnswer();
                 await peer.setLocalDescription(answer);
                 socket.emit('answer', { roomId: matchData.roomId, answer });
+                pendingOffer.current = null;
 
+                // Process pending candidates
                 pendingCandidates.current.forEach(c => peer.addIceCandidate(c));
                 pendingCandidates.current = [];
-            });
+            }
 
             // Initiator Logic
-            if (matchData.isInitiator) {
+            if (matchData.isInitiator && !pendingOffer.current) {
+                console.log("I am initiator, creating offer");
                 const offer = await peer.createOffer();
                 await peer.setLocalDescription(offer);
                 socket.emit('offer', { roomId: matchData.roomId, offer });

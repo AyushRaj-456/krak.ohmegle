@@ -28,6 +28,9 @@ const Main: React.FC = () => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
+  // Store last match preferences for auto-requeuing
+  const [lastMatchPreferences, setLastMatchPreferences] = useState<MatchPreferences | null>(null);
+
   useEffect(() => {
     if (!socket) return;
 
@@ -93,6 +96,9 @@ const Main: React.FC = () => {
       return;
     }
 
+    // Save preferences for re-queueing (Skip/Search New)
+    setLastMatchPreferences(preferences);
+
     // Combine profile data with preferences
     const userData: User = {
       ...userProfile,
@@ -150,35 +156,26 @@ const Main: React.FC = () => {
   const handleSkip = () => {
     if (socket) socket.emit('skip');
     setMatch(null);
-    setSearching(true);
     setPartnerDisconnected(null);
 
-    // Immediately join queue again with same preferences
-    // We need to store last preferences to simple re-join
-    // For now, let's just set searching=true and rely on user to trigger join? 
-    // Wait, the previous logic was just `setSearching(true)` but without handleJoinRoom it does nothing?
-    // Actually handleJoinRoom emits 'join_queue'.
-    // We should probably re-emit join_queue here if we have the data.
-    // For now, let's keep it simple: Skip -> Search New Partner (Auto) logic is tricky without saving prefs.
-    // Let's just return to search view or if we can, re-emit. 
-    // The previous code had `setSearching(true)` but didn't actually re-emit join_queue? 
-    // Ah, `handleSkip` in `Room.tsx` was just "Skip".
-
-    // To make "Skip" work properly (auto-search), we need to save the last used preferences.
-    // But for this task "Refine Skip/Stop", the requirement is about the PARTNER's view.
-    // The skipper just goes to "Searching" (or home). 
-    // Let's ensure the skipper goes to Home for now to be safe, or stays in "Searching" if we can.
-    setSearching(false);
+    // Auto-search: Immediately join queue again with last preferences
+    if (lastMatchPreferences) {
+      handleJoinRoom(lastMatchPreferences);
+    } else {
+      // Fallback if no preferences found (shouldn't happen in normal flow)
+      setSearching(false);
+    }
   };
 
   const handleSearchNew = () => {
     setPartnerDisconnected(null);
     setMatch(null);
-    // Ideally we want to re-join with same params.
-    // Since we don't store params in state yet, we might need to ask user to fill form again?
-    // Or we can just close modal and let them click "Start" again.
-    // "Search New" button implies immediate action.
-    // Let's just reset state to Home so they can click one of the big buttons (Video/Text).
+
+    if (lastMatchPreferences) {
+      handleJoinRoom(lastMatchPreferences);
+    } else {
+      setSearching(false);
+    }
   };
 
   // Sign off handler
