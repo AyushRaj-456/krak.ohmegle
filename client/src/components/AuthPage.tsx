@@ -281,7 +281,7 @@ export const AuthPage: React.FC<AuthPageProps> = () => {
             <footer className="w-full max-w-md mt-16 z-10 text-center">
                 <div className="flex flex-col items-center justify-center space-y-4">
                     <p className="text-gray-500 font-medium tracking-[0.2em] text-xs uppercase hover:text-purple-400 transition-colors cursor-default">
-                        A Project by Kraken
+                        A Project by Krak(Σ)n
                     </p>
                     <div className="flex items-center justify-center gap-6 w-full max-w-lg mx-auto">
                         <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>

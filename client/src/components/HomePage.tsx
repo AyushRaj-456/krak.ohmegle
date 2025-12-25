@@ -918,7 +918,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             <footer className="relative max-w-7xl mx-auto mt-20 pb-12 px-4">
                 <div className="flex flex-col items-center justify-center space-y-4">
                     <p className="text-gray-500 font-medium tracking-[0.2em] text-xs uppercase hover:text-purple-400 transition-colors cursor-default">
-                        A Project by Kraken
+                        A Project by Krak(Σ)n
                     </p>
                     <div className="flex items-center justify-center gap-6 w-full max-w-lg mx-auto">
                         <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>
