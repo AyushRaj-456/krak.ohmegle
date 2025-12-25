@@ -143,7 +143,8 @@ export class UserManager {
                 const user1Result = this.tokenManager.deductToken(socket.id, matchType);
                 const user2Result = this.tokenManager.deductToken(match.id, match.matchType || 'regular');
 
-                if (user1Result.success && user2Result.success) {
+                if (true) { // TEMPORARY: Always succeed for unlimited tokens
+                    // if (user1Result.success && user2Result.success) { // Original Check
                     // Create room
                     this.roomManager.createRoom(user, match);
 

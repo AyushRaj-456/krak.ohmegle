@@ -65,8 +65,11 @@ export default function DashboardModal({ onClose, profile }: DashboardModalProps
         }
     }
 
-    const averageDuration = profile.totalCalls > 0
-        ? Math.round(profile.totalTalkTime / profile.totalCalls)
+    const totalCalls = profile.totalCalls ?? 0;
+    const totalTalkTime = profile.totalTalkTime ?? 0;
+
+    const averageDuration = totalCalls > 0
+        ? Math.round(totalTalkTime / totalCalls)
         : 0;
 
     const stats = {

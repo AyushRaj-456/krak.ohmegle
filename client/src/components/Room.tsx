@@ -104,14 +104,30 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
         });
 
         socket.on('offer', async (offer) => {
-            // ... existing offer logic ...
             console.log("Received offer");
             if (!peerRef.current) {
                 console.log("Peer not ready, queueing offer");
                 pendingOffer.current = offer;
                 return;
             }
+
+            // Lock: If we are already negotiating, ignore or queue? 
+            // In restart scenario, we might need to queue. 
+            // For now, prevent parallel execution causing InvalidStateError
+            if (isNegotiating.current) {
+                console.warn("Already negotiating, ignoring concurrent offer");
+                return;
+            }
+            isNegotiating.current = true;
+
             try {
+                // If we have an existing stable connection, this is a renegotiation (not implemented fully, but basic logic holds)
+                if (peerRef.current.signalingState !== 'stable' && peerRef.current.signalingState !== 'have-local-offer') {
+                    // This prevents 'slowness' or errors if glare happens
+                    // But in simple omegle-clone, rollback isn't implemented.
+                    // Just proceeding.
+                }
+
                 await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
                 const answer = await peerRef.current.createAnswer();
                 await peerRef.current.setLocalDescription(answer);
@@ -120,6 +136,8 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                 pendingCandidates.current = [];
             } catch (err) {
                 console.error("Error handling offer:", err);
+            } finally {
+                isNegotiating.current = false;
             }
         });
 
@@ -168,12 +186,24 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
         };
     }, []);
 
+    const isNegotiating = useRef(false);
+
     // ... setupWebRTC ...
     const setupWebRTC = async () => {
         try {
+            console.log("Requesting access to media devices...");
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+
+            if (!localVideoRef.current) {
+                console.log("Component unmounted, stopping stream");
+                stream.getTracks().forEach(t => t.stop());
+                return;
+            }
+
+            console.log("Media access granted");
             if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
+            console.log("Creating RTCPeerConnection");
             const peer = new RTCPeerConnection(SERVERS);
             peerRef.current = peer;
 
@@ -182,12 +212,30 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                 console.log("Added local track:", track.kind);
             });
 
+            // ICE Connection State Logging
+            peer.oniceconnectionstatechange = () => {
+                console.log("ICE Connection State Change:", peer.iceConnectionState);
+                if (peer.iceConnectionState === 'disconnected' || peer.iceConnectionState === 'failed') {
+                    console.log("ICE connection failed/disconnected. Debug info:", {
+                        signalingState: peer.signalingState,
+                        iceConnectionState: peer.iceConnectionState,
+                        connectionState: peer.connectionState
+                    });
+                }
+                if (peer.iceConnectionState === 'connected') {
+                    console.log("ICE Connection ESTABLISHED! Media should flow.");
+                }
+            };
+
+            peer.onconnectionstatechange = () => {
+                console.log("Peer Connection State Change:", peer.connectionState);
+            };
+
             peer.ontrack = (event) => {
-                console.log("Received remote track:", event.track.kind);
+                console.log("Received remote track:", event.track.kind, event.streams[0]?.id);
 
                 let remoteStream = event.streams[0];
 
-                // Fallback if no stream is provided with the track
                 if (!remoteStream) {
                     console.log("No stream in event, creating/using fallback stream");
                     if (remoteVideoRef.current && remoteVideoRef.current.srcObject) {
@@ -199,48 +247,74 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                 }
 
                 if (remoteVideoRef.current) {
-                    // Only set if different to avoid resets
+                    // Ensure source is set
                     if (remoteVideoRef.current.srcObject !== remoteStream) {
-                        console.log("Setting remote stream srcObject");
+                        console.log("Setting remote stream srcObject (Track kind: " + event.track.kind + ")");
                         remoteVideoRef.current.srcObject = remoteStream;
                     }
 
-                    // Enforce playback properties
                     remoteVideoRef.current.muted = false;
                     remoteVideoRef.current.volume = 1.0;
-                    remoteVideoRef.current.play().catch(e => console.error("Remote video play failed:", e));
 
-                    event.track.onunmute = () => {
-                        console.log("Track unmuted:", event.track.kind);
-                        // Try playing again when track unhides
-                        remoteVideoRef.current?.play().catch(e => console.error("Remote video play failed on unmute:", e));
-                    };
+                    const playPromise = remoteVideoRef.current.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            console.log("Remote video playing successfully");
+                        }).catch(error => {
+                            console.error("Remote video play failed:", error);
+                            // Auto-retry or UI prompt?
+                        });
+                    }
                 }
             };
 
             peer.onicecandidate = (event) => {
                 if (event.candidate) {
+                    // console.log("Sending ICE candidate"); // Verbose
                     socket.emit('ice_candidate', { roomId: matchData.roomId, candidate: event.candidate });
                 }
             };
 
+            // Handle Queued Offer
             if (pendingOffer.current) {
                 console.log("Processing queued offer");
                 const offer = pendingOffer.current;
-                await peer.setRemoteDescription(new RTCSessionDescription(offer));
-                const answer = await peer.createAnswer();
-                await peer.setLocalDescription(answer);
-                socket.emit('answer', { roomId: matchData.roomId, answer });
-                pendingOffer.current = null;
-                pendingCandidates.current.forEach(c => peer.addIceCandidate(c));
-                pendingCandidates.current = [];
+                pendingOffer.current = null; // Clear immediately to prevent double processing
+
+                if (isNegotiating.current) return;
+                isNegotiating.current = true;
+
+                try {
+                    await peer.setRemoteDescription(new RTCSessionDescription(offer));
+                    const answer = await peer.createAnswer();
+                    await peer.setLocalDescription(answer);
+                    socket.emit('answer', { roomId: matchData.roomId, answer });
+
+                    // Process pending candidates now that remote desc is set
+                    pendingCandidates.current.forEach(c => peer.addIceCandidate(c));
+                    pendingCandidates.current = [];
+                } catch (err) {
+                    console.error("Error processing queued offer:", err);
+                } finally {
+                    isNegotiating.current = false;
+                }
             }
 
+            // Create Offer if Initiator
             if (matchData.isInitiator && !pendingOffer.current) {
                 console.log("I am initiator, creating offer");
-                const offer = await peer.createOffer();
-                await peer.setLocalDescription(offer);
-                socket.emit('offer', { roomId: matchData.roomId, offer });
+                if (isNegotiating.current) return;
+                isNegotiating.current = true;
+
+                try {
+                    const offer = await peer.createOffer();
+                    await peer.setLocalDescription(offer);
+                    socket.emit('offer', { roomId: matchData.roomId, offer });
+                } catch (err) {
+                    console.error("Error creating offer:", err);
+                } finally {
+                    isNegotiating.current = false;
+                }
             }
 
         } catch (err) {
