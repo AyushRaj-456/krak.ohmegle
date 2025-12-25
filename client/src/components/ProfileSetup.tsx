@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { createUserProfile, updateUserProfile } from '../services/userService';
+import { createUserProfile, updateUserProfile, checkUsernameAvailability } from '../services/userService';
 import type { ProfileData } from '../types';
 
 interface ProfileSetupProps {
@@ -37,6 +37,23 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete, onClose,
         if (name.trim()) {
             setLoading(true);
             setError('');
+
+            // Check if username is taken (skip check if editing and name hasn't changed)
+            if (!isEdit || (isEdit && initialData?.name !== name)) {
+                const { available, error: checkError } = await checkUsernameAvailability(name, currentUser.uid);
+
+                if (checkError) {
+                    setError('Error checking username availability');
+                    setLoading(false);
+                    return;
+                }
+
+                if (!available) {
+                    setError(`Warning: The name "${name}" is already taken. Please choose another one.`);
+                    setLoading(false);
+                    return;
+                }
+            }
 
             const profileData: ProfileData = {
                 uid: currentUser.uid,

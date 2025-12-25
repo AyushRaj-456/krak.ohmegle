@@ -130,6 +130,30 @@ export const findUserByEmail = async (email: string) => {
     }
 };
 
+// Check if username is available (case-insensitive usually preferred, but Firestore is case-sensitive by default)
+// For simplicity and strict matching, we'll check exact match first.
+export const checkUsernameAvailability = async (name: string, currentUid?: string) => {
+    try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('name', '==', name));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            return { available: true, error: null };
+        }
+
+        // If specific UID provided (editing own profile), ignore self match
+        if (currentUid) {
+            const isSelf = querySnapshot.docs.length === 1 && querySnapshot.docs[0].id === currentUid;
+            if (isSelf) return { available: true, error: null };
+        }
+
+        return { available: false, error: null };
+    } catch (error: any) {
+        return { available: false, error: error.message };
+    }
+};
+
 // Get top users for leaderboard
 export const getTopUsers = async (limitCount: number = 10, sortBy: 'totalCalls' | 'seasonCalls' = 'totalCalls') => {
     try {
