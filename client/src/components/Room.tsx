@@ -42,9 +42,16 @@ const CallTimer = () => {
 };
 
 export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }) => {
+    // Chat Toggle State
+    const [isChatOpen, setIsChatOpen] = useState(false);
+    const [partnerChatOpen, setPartnerChatOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    // Existing State
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
     const [partnerDisconnected, setPartnerDisconnected] = useState(false);
+    const [canReconnect, setCanReconnect] = useState(false); // Delay state
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
 
@@ -53,26 +60,51 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
     const peerRef = useRef<RTCPeerConnection | null>(null);
     const pendingCandidates = useRef<RTCIceCandidate[]>([]);
-
     const pendingOffer = useRef<any>(null);
 
+    // Ref for current chat state to use inside socket callbacks
+    const isChatOpenRef = useRef(isChatOpen);
     useEffect(() => {
+        isChatOpenRef.current = isChatOpen;
+    }, [isChatOpen]);
+
+    useEffect(() => {
+        // Handle Chat Status Sync
+        socket.on('chat_status', (status: { isOpen: boolean }) => {
+            console.log("Partner chat status:", status.isOpen);
+            setPartnerChatOpen(status.isOpen);
+        });
+
+        // Emit initial status (closed)
+        socket.emit('chat_status', { roomId: matchData.roomId, isOpen: false });
+
         // Handle Disconnect
         socket.on('partner_disconnected', () => {
+            // ... existing disconnect logic ...
             setPartnerDisconnected(true);
             setMessages(prev => [...prev, { sender: 'system', text: 'Partner disconnected.', timestamp: Date.now() }]);
             if (peerRef.current) {
                 peerRef.current.close();
                 peerRef.current = null;
             }
+
+            // Reconnect delay
+            setCanReconnect(false);
+            setTimeout(() => {
+                setCanReconnect(true);
+            }, 2000);
         });
 
+        // ... existing listeners ...
         socket.on('message', (msg: { text: string }) => {
             setMessages(prev => [...prev, { sender: 'partner', text: msg.text, timestamp: Date.now() }]);
+            if (!isChatOpenRef.current) {
+                setUnreadCount(prev => prev + 1);
+            }
         });
 
-        // WebRTC Signaling Listeners (Moved here to catch events while getUserMedia is pending)
         socket.on('offer', async (offer) => {
+            // ... existing offer logic ...
             console.log("Received offer");
             if (!peerRef.current) {
                 console.log("Peer not ready, queueing offer");
@@ -80,13 +112,10 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                 return;
             }
             try {
-                // If we are getting an offer, we are the answerer.
                 await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
                 const answer = await peerRef.current.createAnswer();
                 await peerRef.current.setLocalDescription(answer);
                 socket.emit('answer', { roomId: matchData.roomId, answer });
-
-                // Process any pending candidates that arrived before the offer
                 pendingCandidates.current.forEach(c => peerRef.current?.addIceCandidate(c));
                 pendingCandidates.current = [];
             } catch (err) {
@@ -95,11 +124,11 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
         });
 
         socket.on('answer', async (answer) => {
+            // ... existing answer logic ...
             console.log("Received answer");
             if (!peerRef.current) return;
             try {
                 await peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
-                // Add pending candidates
                 pendingCandidates.current.forEach(c => peerRef.current?.addIceCandidate(c));
                 pendingCandidates.current = [];
             } catch (err) {
@@ -108,6 +137,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
         });
 
         socket.on('ice_candidate', async (candidate) => {
+            // ... existing ice candidate logic ...
             if (peerRef.current && peerRef.current.remoteDescription) {
                 try {
                     await peerRef.current.addIceCandidate(candidate);
@@ -123,12 +153,12 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
         setupWebRTC();
 
         return () => {
+            socket.off('chat_status'); // Clean up listener
             socket.off('partner_disconnected');
             socket.off('message');
             socket.off('offer');
             socket.off('answer');
             socket.off('ice_candidate');
-            // Cleanup media tracks
             if (localVideoRef.current && localVideoRef.current.srcObject) {
                 (localVideoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
             }
@@ -138,6 +168,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
         };
     }, []);
 
+    // ... setupWebRTC ...
     const setupWebRTC = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -146,11 +177,44 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
             const peer = new RTCPeerConnection(SERVERS);
             peerRef.current = peer;
 
-            stream.getTracks().forEach(track => peer.addTrack(track, stream));
+            stream.getTracks().forEach(track => {
+                peer.addTrack(track, stream);
+                console.log("Added local track:", track.kind);
+            });
 
             peer.ontrack = (event) => {
+                console.log("Received remote track:", event.track.kind);
+
+                let remoteStream = event.streams[0];
+
+                // Fallback if no stream is provided with the track
+                if (!remoteStream) {
+                    console.log("No stream in event, creating/using fallback stream");
+                    if (remoteVideoRef.current && remoteVideoRef.current.srcObject) {
+                        remoteStream = remoteVideoRef.current.srcObject as MediaStream;
+                        remoteStream.addTrack(event.track);
+                    } else {
+                        remoteStream = new MediaStream([event.track]);
+                    }
+                }
+
                 if (remoteVideoRef.current) {
-                    remoteVideoRef.current.srcObject = event.streams[0];
+                    // Only set if different to avoid resets
+                    if (remoteVideoRef.current.srcObject !== remoteStream) {
+                        console.log("Setting remote stream srcObject");
+                        remoteVideoRef.current.srcObject = remoteStream;
+                    }
+
+                    // Enforce playback properties
+                    remoteVideoRef.current.muted = false;
+                    remoteVideoRef.current.volume = 1.0;
+                    remoteVideoRef.current.play().catch(e => console.error("Remote video play failed:", e));
+
+                    event.track.onunmute = () => {
+                        console.log("Track unmuted:", event.track.kind);
+                        // Try playing again when track unhides
+                        remoteVideoRef.current?.play().catch(e => console.error("Remote video play failed on unmute:", e));
+                    };
                 }
             };
 
@@ -160,7 +224,6 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                 }
             };
 
-            // Handle queued offer if exists
             if (pendingOffer.current) {
                 console.log("Processing queued offer");
                 const offer = pendingOffer.current;
@@ -169,13 +232,10 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                 await peer.setLocalDescription(answer);
                 socket.emit('answer', { roomId: matchData.roomId, answer });
                 pendingOffer.current = null;
-
-                // Process pending candidates
                 pendingCandidates.current.forEach(c => peer.addIceCandidate(c));
                 pendingCandidates.current = [];
             }
 
-            // Initiator Logic
             if (matchData.isInitiator && !pendingOffer.current) {
                 console.log("I am initiator, creating offer");
                 const offer = await peer.createOffer();
@@ -220,10 +280,22 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
         }
     };
 
+    const toggleChat = () => {
+        const newState = !isChatOpen;
+        setIsChatOpen(newState);
+        if (newState) {
+            setUnreadCount(0); // Reset unread count when opening chat
+        }
+        socket.emit('chat_status', { roomId: matchData.roomId, isOpen: newState });
+    };
+
     return (
-        <div className="flex h-screen w-full bg-black overflow-hidden flex-col md:flex-row">
-            {/* Main Video Area */}
-            <div className="flex-1 relative bg-gray-900">
+        <div className="flex h-[100dvh] w-full bg-black overflow-hidden flex-col md:flex-row">
+            {/* Main Video Area - Full width if chat closed, else Flex 7 */}
+            <div className={`relative bg-gray-900 overflow-hidden transition-all duration-300 ease-in-out ${isChatOpen
+                ? 'h-[70%] w-full md:h-full md:w-[70%]'
+                : 'w-full h-full'
+                }`}>
                 {/* Remote Video */}
                 <video
                     ref={remoteVideoRef}
@@ -243,7 +315,23 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                 </div>
 
                 {/* Controls Overlay */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4">
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-4 items-center z-20">
+                    {/* Chat Toggle Button */}
+                    <button
+                        onClick={toggleChat}
+                        className={`${isChatOpen ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-700 hover:bg-gray-600'} text-white p-4 rounded-full font-bold shadow-lg transform hover:scale-110 transition-all duration-200 flex items-center justify-center relative`}
+                        title={isChatOpen ? "Close Chat" : "Open Chat"}
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+
+                        {/* Unread Badge */}
+                        {!isChatOpen && unreadCount > 0 && (
+                            <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-gray-900">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </div>
+                        )}
+                    </button>
+
                     <button
                         onClick={toggleMic}
                         className={`${isMuted ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-700 hover:bg-gray-600'} text-white p-4 rounded-full font-bold shadow-lg transform hover:scale-110 transition-all duration-200 flex items-center justify-center`}
@@ -282,6 +370,43 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                     </button>
                 </div>
 
+                {/* Disconnect Overlay */}
+                {partnerDisconnected && (
+                    <div className="absolute inset-0 z-30 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center text-white p-6 text-center animate-in fade-in duration-300">
+                        <div className="bg-gray-800 p-8 rounded-3xl shadow-2xl max-w-md w-full border border-gray-700">
+                            <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                            </div>
+                            <h2 className="text-2xl font-bold mb-2">Partner Disconnected</h2>
+                            <p className="text-gray-400 mb-8">Your partner has left the chat. Would you like to find someone else?</p>
+
+                            <div className="flex flex-col gap-4">
+                                <button
+                                    onClick={onSkip}
+                                    disabled={!canReconnect}
+                                    className={`w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 ${!canReconnect ? 'opacity-50 blur-[2px] cursor-not-allowed' : ''}`}
+                                >
+                                    {!canReconnect ? (
+                                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                    )}
+                                    {canReconnect ? 'Find New Partner' : 'Wait...'}
+                                </button>
+                                <button
+                                    onClick={onLeave}
+                                    className="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 rounded-xl transition-all hover:bg-gray-600"
+                                >
+                                    Return to Home
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Local Video (PiP) */}
                 <div className="absolute top-4 right-4 w-32 md:w-56 aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border-2 border-white/20">
                     <video
@@ -296,49 +421,59 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
             </div>
 
             {/* Chat Sidebar */}
-            <div className="h-64 md:h-full md:w-96 bg-white border-l border-gray-200 flex flex-col shadow-xl z-10">
-                <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
-                    <h3 className="font-bold text-gray-700">Chat</h3>
-                    <div className="text-xs text-gray-400">
-                        {matchData.partner.gender === 'Female' ? '♀️' : matchData.partner.gender === 'Male' ? '♂️' : '👤'}
-                    </div>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50">
-                    {messages.map((msg, idx) => (
-                        <div key={idx} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm shadow-sm ${msg.sender === 'me'
-                                ? 'bg-indigo-600 text-white rounded-br-none'
-                                : msg.sender === 'system'
-                                    ? 'bg-gray-200 text-gray-500 italic text-xs text-center w-full py-1'
-                                    : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
-                                }`}>
-                                {msg.text}
-                            </div>
+            {isChatOpen && (
+                <div className="bg-white h-[30%] w-full md:h-full md:w-[30%] border-l border-gray-200 flex flex-col shadow-xl z-20 overflow-hidden animate-in slide-in-from-right duration-300">
+                    <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
+                        <h3 className="font-bold text-gray-700">Chat</h3>
+                        <div className="text-xs text-gray-400">
+                            {matchData.partner.gender === 'Female' ? '♀️' : matchData.partner.gender === 'Male' ? '♂️' : '👤'}
                         </div>
-                    ))}
-                    <div ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })} />
-                </div>
-
-                <form onSubmit={sendMessage} className="p-4 bg-white border-t">
-                    <div className="relative">
-                        <input
-                            className="w-full bg-gray-100 border-0 rounded-full px-5 py-3 pr-12 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-sm"
-                            value={inputText}
-                            onChange={(e) => setInputText(e.target.value)}
-                            placeholder={partnerDisconnected ? "Partner disconnected..." : "Type a message..."}
-                            disabled={partnerDisconnected}
-                        />
-                        <button
-                            type="submit"
-                            disabled={partnerDisconnected || !inputText}
-                            className="absolute right-2 top-1.5 bg-indigo-600 text-white p-1.5 rounded-full disabled:opacity-50 hover:bg-indigo-700 transition"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                        </button>
                     </div>
-                </form>
-            </div>
+
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50">
+                        {/* Partner Chat Closed Warning */}
+                        {!partnerChatOpen && (
+                            <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded-xl text-xs flex items-center gap-2">
+                                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                <span>Partner has chat closed. They may not see your messages.</span>
+                            </div>
+                        )}
+
+                        {messages.map((msg, idx) => (
+                            <div key={idx} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[85%] px-4 py-2 rounded-2xl text-sm shadow-sm ${msg.sender === 'me'
+                                    ? 'bg-indigo-600 text-white rounded-br-none'
+                                    : msg.sender === 'system'
+                                        ? 'bg-gray-200 text-gray-500 italic text-xs text-center w-full py-1'
+                                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                                    }`}>
+                                    {msg.text}
+                                </div>
+                            </div>
+                        ))}
+                        <div ref={(el) => el?.scrollIntoView({ behavior: 'smooth' })} />
+                    </div>
+
+                    <form onSubmit={sendMessage} className="p-4 bg-white border-t">
+                        <div className="relative">
+                            <input
+                                className="w-full bg-gray-100 border-0 rounded-full px-5 py-3 pr-12 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all text-sm"
+                                value={inputText}
+                                onChange={(e) => setInputText(e.target.value)}
+                                placeholder={partnerDisconnected ? "Partner disconnected..." : "Type a message..."}
+                                disabled={partnerDisconnected}
+                            />
+                            <button
+                                type="submit"
+                                disabled={partnerDisconnected || !inputText}
+                                className="absolute right-2 top-1.5 bg-indigo-600 text-white p-1.5 rounded-full disabled:opacity-50 hover:bg-indigo-700 transition"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
         </div>
     );
 };

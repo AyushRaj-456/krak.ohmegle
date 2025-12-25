@@ -237,6 +237,7 @@ const Main: React.FC = () => {
   if (match && socket) {
     return (
       <Room
+        key={match.roomId}
         socket={socket}
         user={{
           ...userProfile,

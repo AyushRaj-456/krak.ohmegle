@@ -95,6 +95,8 @@ export class UserManager {
 
         socket.on('join_queue', ({ name, branch, gender, mode, filters, matchType = 'regular', mood, hobbies }) => {
             // Validate token availability
+            // TEMPORARY: Disabled token check for unlimited access
+            /*
             if (!this.tokenManager.hasAvailableToken(socket.id, matchType)) {
                 socket.emit('insufficient_tokens', {
                     message: 'You need tokens to join a room',
@@ -102,6 +104,7 @@ export class UserManager {
                 });
                 return;
             }
+            */
 
             // Merge with existing user data (preserving uid/socket)
             const existingUser = this.users.get(socket.id) || { socket, id: socket.id };

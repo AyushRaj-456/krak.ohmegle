@@ -58,6 +58,8 @@ export const HomePage: React.FC<HomePageProps> = ({
     const [focusedUser, setFocusedUser] = useState<string | null>(null);
     const [isStatsHovered, setIsStatsHovered] = useState(false);
 
+    const [showPermissionHelp, setShowPermissionHelp] = useState(false);
+
     // Permission State
     const [cameraAllowed, setCameraAllowed] = useState(false);
     const [micAllowed, setMicAllowed] = useState(false);
@@ -116,7 +118,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
     const handleJoinRoom = async () => {
         // Enforce Toggles
-        if (matchType !== 'text' && (!cameraAllowed || !micAllowed)) {
+        if (!cameraAllowed || !micAllowed) {
             onAlert("⚠️ You must enable both Camera and Microphone access above to join!");
             return;
         }
@@ -139,12 +141,13 @@ export const HomePage: React.FC<HomePageProps> = ({
     };
 
     const hasTokens = () => {
-        if (matchType === 'regular') {
-            return tokens.freeTrialsRemaining > 0 || tokens.regularTokens > 0;
-        } else if (matchType === 'golden') {
-            return tokens.goldenTokens > 0;
-        }
-        return false;
+        return true; // Temporary: Unlimited tokens for everyone
+        // if (matchType === 'regular') {
+        //     return tokens.freeTrialsRemaining > 0 || tokens.regularTokens > 0;
+        // } else if (matchType === 'golden') {
+        //     return tokens.goldenTokens > 0;
+        // }
+        // return false;
     };
 
 
@@ -158,6 +161,57 @@ export const HomePage: React.FC<HomePageProps> = ({
             </div>
 
             {/* Header */}
+            {/* Permission Help Modal */}
+            {showPermissionHelp && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowPermissionHelp(false)}>
+                    <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                        <button
+                            onClick={() => setShowPermissionHelp(false)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-white"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                            </div>
+                            <h2 className="text-xl font-bold text-white mb-2">Enable Camera & Mic</h2>
+                            <p className="text-gray-400 text-sm">You need these permissions to chat!</p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                                <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                                    <span className="bg-indigo-600 text-xs px-2 py-0.5 rounded text-white">Method 1</span>
+                                    Address Bar
+                                </h3>
+                                <p className="text-sm text-gray-300">
+                                    Click the <strong className="text-white">Lock/Settings icon (🔒)</strong> on the left side of your browser's address bar. Toggle Camera & Microphone to <strong className="text-green-400">ON</strong>.
+                                </p>
+                            </div>
+
+                            <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                                <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                                    <span className="bg-gray-600 text-xs px-2 py-0.5 rounded text-white">Method 2</span>
+                                    Browser Settings
+                                </h3>
+                                <p className="text-sm text-gray-300">
+                                    Go to <strong className="text-white">Settings {'>'} Privacy & Security {'>'} Site Settings</strong>. Find this site and select "Reset Permissions" or manually Allow.
+                                </p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => setShowPermissionHelp(false)}
+                            className="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition-colors"
+                        >
+                            Got it!
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <div className="relative max-w-7xl mx-auto mb-6">
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl md:text-4xl font-bold text-white tracking-wider font-mono flex items-center">
@@ -540,8 +594,17 @@ export const HomePage: React.FC<HomePageProps> = ({
                             </button>
 
                             {/* Permission Toggles */}
-                            <div className="mt-4 space-y-3 bg-[#0f0f14] p-4 rounded-xl border border-white/5">
-                                <h3 className="text-sm font-medium text-gray-400 mb-2">Device Permissions</h3>
+                            <div className="mt-4 space-y-3 bg-[#0f0f14] p-4 rounded-xl border border-white/5 relative">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-sm font-medium text-gray-400">Device Permissions</h3>
+                                    <button
+                                        onClick={() => setShowPermissionHelp(true)}
+                                        className="text-gray-400 hover:text-white transition-colors"
+                                        title="Need Help?"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                    </button>
+                                </div>
 
                                 {/* Camera Status */}
                                 <div className="flex items-center justify-between">

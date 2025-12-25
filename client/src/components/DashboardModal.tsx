@@ -65,9 +65,13 @@ export default function DashboardModal({ onClose, profile }: DashboardModalProps
         }
     }
 
+    const averageDuration = profile.totalCalls > 0
+        ? Math.round(profile.totalTalkTime / profile.totalCalls)
+        : 0;
+
     const stats = {
         totalCalls: profile.totalCalls || 0,
-        monthlyCalls: 0, // Not implemented yet
+        averageDuration: formatDuration(averageDuration),
         totalDuration: formatDuration(profile.totalTalkTime),
         longestCall: formatDuration(profile.longestCall),
         mostMatchedBranch: getTopStat(profile.stats?.branchMatches),
@@ -139,15 +143,15 @@ export default function DashboardModal({ onClose, profile }: DashboardModalProps
                         <p className="text-xl font-bold text-white">{stats.totalCalls}</p>
                     </div>
 
-                    {/* Monthly Calls */}
+                    {/* Average Duration - Replaces Monthly Calls */}
                     <div className="bg-[#0f0f14] p-3 rounded-xl border border-white/5 flex flex-col items-center group hover:border-blue-500/30 transition-all">
                         <div className="p-2 bg-blue-500/10 rounded-full mb-2 group-hover:scale-110 transition-transform">
                             <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <p className="text-gray-400 text-xs">This Month</p>
-                        <p className="text-xl font-bold text-white">{stats.monthlyCalls}</p>
+                        <p className="text-gray-400 text-xs">Avg. Duration</p>
+                        <p className="text-xl font-bold text-white text-center text-xs break-all">{stats.averageDuration}</p>
                     </div>
 
                     {/* Total Duration */}
