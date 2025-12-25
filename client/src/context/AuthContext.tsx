@@ -14,6 +14,7 @@ interface AuthContextType {
     signOut: () => Promise<void>;
     resetPassword: (email: string) => Promise<{ error: string | null }>;
     refreshProfile: () => Promise<void>;
+    updateLocalProfile: (data: Partial<ProfileData>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -150,6 +151,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signOut: signOutUser,
         resetPassword,
         refreshProfile,
+        updateLocalProfile: (data: Partial<ProfileData>) => {
+            setUserProfile(prev => prev ? { ...prev, ...data } : null);
+        },
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

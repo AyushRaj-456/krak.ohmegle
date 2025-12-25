@@ -16,7 +16,7 @@ const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Graduate'];
 // Languages list moved to state initialization or removed if not needed to be a constant for now
 
 export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete, onClose, initialData, isEdit = false }) => {
-    const { currentUser, refreshProfile } = useAuth();
+    const { currentUser, refreshProfile, updateLocalProfile } = useAuth();
     const [name, setName] = useState(initialData?.name || '');
     const [branch, setBranch] = useState(initialData?.branch || BRANCHES[0]);
     const [gender, setGender] = useState(initialData?.gender || GENDERS[0]);
@@ -54,6 +54,44 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete, onClose,
                     return;
                 }
             }
+
+            // Start GUEST Logic
+            // If user is guest, skip username check and Firestore write
+            if (currentUser.isAnonymous || initialData?.isGuest) {
+                const profileData: ProfileData = {
+                    uid: currentUser.uid,
+                    email: '', // Guests don't have email
+                    name,
+                    branch,
+                    gender,
+                    year,
+                    bio: bio.trim() || undefined,
+                    hobbies: hobbiesInput.trim() ? hobbiesInput.split(',').map(h => h.trim()).filter(h => h) : undefined,
+                    languages: languagesInput.trim() ? languagesInput.split(',').map(l => l.trim()).filter(l => l) : undefined,
+                    isGuest: true,
+                    // Preserve existing guest stats if any
+                    ...initialData
+                };
+
+                // Override new values on top of initialData to ensure updates stick
+                // Specifically re-assign the form values we just captured
+                Object.assign(profileData, {
+                    name,
+                    branch,
+                    gender,
+                    year,
+                    bio: bio.trim() || undefined,
+                    hobbies: hobbiesInput.trim() ? hobbiesInput.split(',').map(h => h.trim()).filter(h => h) : undefined,
+                    languages: languagesInput.trim() ? languagesInput.split(',').map(l => l.trim()).filter(l => l) : undefined
+                });
+
+                // Update local context
+                updateLocalProfile(profileData);
+                setLoading(false);
+                onComplete(profileData);
+                return;
+            }
+            // End GUEST Logic
 
             const profileData: ProfileData = {
                 uid: currentUser.uid,
