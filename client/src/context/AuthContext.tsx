@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { onAuthChange, signUpWithEmail, signInWithEmail, logOut, resetPasswordWithEmail } from '../services/authService';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import type { ProfileData } from '../types';
 
 interface AuthContextType {
@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const unsubscribeAuth = onAuthChange(async (user) => {
             setCurrentUser(user);
-            setLoading(false); // Set loading to false once we have auth state
+            // Don't set loading false yet. Wait until we decide if we have a profile.
 
             // Clean up previous listener if any
             if (unsubscribeProfile) {
@@ -46,19 +46,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             if (user) {
+                console.log("[AuthContext] User Detected:", user.uid, "Anonymous:", user.isAnonymous);
+                // Check for Guest
+                // Check both the passed user object and the global auth object to be sure
+                if (user.isAnonymous || auth.currentUser?.isAnonymous) {
+                    console.log("[AuthContext] Setting mock guest profile");
+                    setUserProfile({
+                        uid: user.uid,
+                        name: 'Guest User',
+                        branch: 'Guest',
+                        year: '1st Year',
+                        gender: 'Other',
+                        email: '',
+                        isGuest: true,
+                        totalCalls: 0,
+                        seasonCalls: 0,
+                        totalTalkTime: 0,
+                        createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 },
+                        lastActive: { seconds: Date.now() / 1000, nanoseconds: 0 },
+                        stats: {
+                            genderMatches: {},
+                            branchMatches: {},
+                            moodMatches: {},
+                            hobbyMatches: {}
+                        },
+                        tokens: { // Mock tokens for guest
+                            freeTrialsRemaining: 5,
+                            regularTokens: 0,
+                            goldenTokens: 0
+                        }
+                    } as any);
+                    setLoading(false);
+                    return;
+                }
+
                 // Subscribe to real-time profile updates
                 const userRef = doc(db, 'users', user.uid);
                 unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
                     if (docSnap.exists()) {
                         setUserProfile(docSnap.data() as ProfileData);
                     } else {
+                        // User exists in auth but not firestore (e.g. half-created account)
                         setUserProfile(null);
                     }
+                    setLoading(false); // Set loading false after getting profile
                 }, (error) => {
                     console.error("Error listening to user profile:", error);
+                    setLoading(false); // Ensure loading stops even on error
                 });
             } else {
                 setUserProfile(null);
+                setLoading(false);
             }
         });
 
@@ -98,10 +136,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
     };
 
-    // Refresh profile from Firestore (Manual refresh still useful if needed, but listener usually handles it)
+    // Refresh profile from Firestore
     const refreshProfile = async () => {
-        // Listener handles this, but we can keep for compatibility or manual triggers
-        // if needed. For now, it's a no-op or just logs.
         console.log("Profile refresh requested (handled by realtime listener)");
     };
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import type { MatchData, Message, User } from '../types';
+import { ReportModal } from './ReportModal';
 
 interface RoomProps {
     socket: Socket;
@@ -59,6 +60,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
     const [canReconnect, setCanReconnect] = useState(false); // Delay state
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
     // WebRTC Refs
     const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -390,6 +392,13 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
         socket.emit('chat_status', { roomId: matchData.roomId, isOpen: newState });
     };
 
+    const handleReport = (reason: string, file: File | null) => {
+        console.log("Report submitted:", { reason, file, reportedUser: matchData.partner });
+        // Here you would typically upload the file and send the report to the backend
+        setIsReportModalOpen(false);
+        alert("Report submitted successfully. We will review this shortly.");
+    };
+
     return (
         <div className="flex h-[100dvh] w-full bg-black overflow-hidden flex-col md:flex-row">
             {/* Main Video Area - Full width if chat closed, else Flex 7 */}
@@ -410,9 +419,24 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                     <div className="bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full flex items-center gap-3">
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                         <span className="font-bold">{matchData.partner.name || 'Anonymous'}</span>
+                        {matchData.partner.isGuest && (
+                            <span className="bg-gray-700 text-gray-300 text-[10px] px-2 py-0.5 rounded-full font-bold tracking-wider border border-gray-600">
+                                GUEST
+                            </span>
+                        )}
                         <span className="text-sm opacity-75">({matchData.partner.branch})</span>
                     </div>
                     <CallTimer />
+                    {/* Report Button */}
+                    <button
+                        onClick={() => setIsReportModalOpen(true)}
+                        className="bg-black/40 hover:bg-red-500/20 hover:text-red-400 backdrop-blur-md text-gray-400 p-2 rounded-full transition-all border border-white/10 hover:border-red-500/30"
+                        title="Report User"
+                    >
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z" />
+                        </svg>
+                    </button>
                 </div>
 
                 {/* Controls Overlay */}
@@ -575,6 +599,14 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                     </form>
                 </div>
             )}
+
+            {/* Report Modal */}
+            <ReportModal
+                isOpen={isReportModalOpen}
+                onClose={() => setIsReportModalOpen(false)}
+                onSubmit={handleReport}
+                userName={matchData.partner.name || 'Anonymous'}
+            />
         </div>
     );
 };

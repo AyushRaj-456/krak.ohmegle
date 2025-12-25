@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { loginAsGuest } from '../services/authService';
 
 interface AuthPageProps {
     onAuth: (uid: string, email: string) => void;
@@ -18,6 +19,18 @@ export const AuthPage: React.FC<AuthPageProps> = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showGuestWarning, setShowGuestWarning] = useState(false);
+
+    const handleGuestLogin = async () => {
+        setShowGuestWarning(false);
+        setLoading(true);
+        const { error } = await loginAsGuest();
+        if (error) {
+            setError(error);
+            setLoading(false);
+        }
+        // Success will trigger auth state change and redirect automatically via App.tsx
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -263,6 +276,18 @@ export const AuthPage: React.FC<AuthPageProps> = () => {
 
                 </form>
 
+                {/* Continue as Guest */}
+                {!isResetMode && !loading && (
+                    <div className="mt-6 text-center">
+                        <button
+                            onClick={() => setShowGuestWarning(true)}
+                            className="text-gray-500 hover:text-white text-sm transition-colors border-b border-transparent hover:border-gray-500 pb-0.5"
+                        >
+                            Continue as Guest
+                        </button>
+                    </div>
+                )}
+
                 {isResetMode && (
                     <button
                         className="w-full text-gray-400 hover:text-white text-sm font-medium mt-4 transition-colors p-2"
@@ -276,6 +301,76 @@ export const AuthPage: React.FC<AuthPageProps> = () => {
                     </button>
                 )}
             </div>
+
+            {/* Guest Warning Modal */}
+            {showGuestWarning && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
+                    <div
+                        className="bg-[#1a1a23] rounded-3xl max-w-sm w-full p-8 border border-white/5 shadow-2xl relative overflow-hidden group"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Decorative background glow */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
+
+                        {/* Close button */}
+                        <button
+                            onClick={() => setShowGuestWarning(false)}
+                            className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5"
+                        >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        <div className="relative text-center">
+                            {/* Icon */}
+                            <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-white/5 shadow-inner">
+                                <svg className="w-8 h-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+
+                            <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">Guest Access</h3>
+
+                            <div className="space-y-4 mb-8">
+                                <p className="text-gray-400 text-sm leading-relaxed">
+                                    You are entering a temporary session.
+                                </p>
+                                <div className="bg-red-500/5 border border-red-500/10 rounded-xl p-4 text-left">
+                                    <h4 className="text-red-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Limitations
+                                    </h4>
+                                    <ul className="space-y-2 text-xs text-gray-400 font-medium">
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-red-400/50 mt-0.5">•</span>
+                                            <span>Your stats will <strong>not</strong> be saved.</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-red-400/50 mt-0.5">•</span>
+                                            <span>You will <strong>not</strong> appear on the leaderboard.</span>
+                                        </li>
+                                        <li className="flex items-start gap-2">
+                                            <span className="text-red-400/50 mt-0.5">•</span>
+                                            <span>Session data vanishes upon exit.</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleGuestLogin}
+                                className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white font-medium py-3.5 rounded-xl transition-all shadow-lg hover:shadow-gray-700/20 hover:-translate-y-0.5 active:translate-y-0 border border-white/5 group-hover:border-white/10"
+                            >
+                                Enter as Guest
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Footer */}
             <footer className="w-full max-w-md mt-16 z-10 text-center">

@@ -20,6 +20,7 @@ export interface ProfileData {
         hobbyMatches?: Record<string, number>;
     };
     role?: 'user' | 'admin' | 'devbot';
+    isGuest?: boolean;
 }
 
 // Match preferences (optional filters)
@@ -49,6 +50,7 @@ export interface MatchData {
         name: string;
         branch: string;
         gender: string;
+        isGuest?: boolean;
     };
     roomId: string;
 }

@@ -93,7 +93,7 @@ export class UserManager {
             }
         });
 
-        socket.on('join_queue', ({ name, branch, gender, mode, filters, matchType = 'regular', mood, hobbies }) => {
+        socket.on('join_queue', ({ name, branch, gender, mode, filters, matchType = 'regular', mood, hobbies, isGuest }) => {
             // Validate token availability
             // TEMPORARY: Disabled token check for unlimited access
             /*
@@ -119,13 +119,15 @@ export class UserManager {
                 matchType,
                 mood,
                 hobbies,
+                isGuest: !!isGuest,
                 processMatch: (partner, roomId, isInitiator) => {
                     socket.join(roomId);
                     socket.emit('match_found', {
                         partner: {
                             name: partner.name,
                             branch: partner.branch,
-                            gender: partner.gender
+                            gender: partner.gender,
+                            isGuest: partner.isGuest
                         },
                         roomId,
                         isInitiator
@@ -195,8 +197,8 @@ export class UserManager {
             if (roomResult) {
                 const { duration, user1, user2 } = roomResult;
                 if (duration > 0) {
-                    if (user1 && user1.uid) this.updateUserStats(user1.uid, duration, user2);
-                    if (user2 && user2.uid) this.updateUserStats(user2.uid, duration, user1);
+                    if (user1 && user1.uid) this.updateUserStats(user1, duration, user2);
+                    if (user2 && user2.uid) this.updateUserStats(user2, duration, user1);
                 }
             }
         });
@@ -238,15 +240,18 @@ export class UserManager {
             if (roomResult) {
                 const { duration, user1, user2 } = roomResult;
                 if (duration > 0) {
-                    if (user1 && user1.uid) this.updateUserStats(user1.uid, duration, user2);
-                    if (user2 && user2.uid) this.updateUserStats(user2.uid, duration, user1);
+                    if (user1 && user1.uid) this.updateUserStats(user1, duration, user2);
+                    if (user2 && user2.uid) this.updateUserStats(user2, duration, user1);
                 }
             }
         });
     }
 
-    async updateUserStats(uid, duration, partner) {
-        if (!uid || duration <= 0) return;
+    async updateUserStats(user, duration, partner) {
+        if (!user || !user.uid || duration <= 0) return;
+        if (user.isGuest) return; // Skip stats for guests
+
+        const uid = user.uid;
 
         try {
             const userRef = this.db.collection('users').doc(uid);
@@ -332,8 +337,8 @@ export class UserManager {
         if (roomResult) {
             const { duration, user1, user2 } = roomResult;
             if (duration > 0) {
-                if (user1 && user1.uid) this.updateUserStats(user1.uid, duration, user2);
-                if (user2 && user2.uid) this.updateUserStats(user2.uid, duration, user1);
+                if (user1 && user1.uid) this.updateUserStats(user1, duration, user2);
+                if (user2 && user2.uid) this.updateUserStats(user2, duration, user1);
             }
         }
     }

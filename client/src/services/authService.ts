@@ -6,6 +6,10 @@ import {
     GoogleAuthProvider,
     signInWithPopup,
     sendPasswordResetEmail,
+    signInAnonymously,
+    setPersistence,
+    browserLocalPersistence,
+    inMemoryPersistence,
 } from 'firebase/auth';
 import type { User } from 'firebase/auth';
 import { auth } from '../firebase';
@@ -17,6 +21,7 @@ const googleProvider = new GoogleAuthProvider();
 // Sign up with email and password
 export const signUpWithEmail = async (email: string, password: string) => {
     try {
+        await setPersistence(auth, browserLocalPersistence);
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         return { user: userCredential.user, error: null };
     } catch (error: any) {
@@ -27,6 +32,7 @@ export const signUpWithEmail = async (email: string, password: string) => {
 // Sign in with email and password
 export const signInWithEmail = async (email: string, password: string) => {
     try {
+        await setPersistence(auth, browserLocalPersistence);
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         return { user: userCredential.user, error: null };
     } catch (error: any) {
@@ -37,7 +43,19 @@ export const signInWithEmail = async (email: string, password: string) => {
 // Sign in with Google
 export const signInWithGoogle = async () => {
     try {
+        await setPersistence(auth, browserLocalPersistence);
         const result = await signInWithPopup(auth, googleProvider);
+        return { user: result.user, error: null };
+    } catch (error: any) {
+        return { user: null, error: error.message };
+    }
+};
+
+// Sign in as Guest
+export const loginAsGuest = async () => {
+    try {
+        await setPersistence(auth, inMemoryPersistence);
+        const result = await signInAnonymously(auth);
         return { user: result.user, error: null };
     } catch (error: any) {
         return { user: null, error: error.message };

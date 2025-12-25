@@ -11,12 +11,18 @@ import {
     limit,
     orderBy
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import type { ProfileData } from '../types';
 
 // Create a new user profile in Firestore
 export const createUserProfile = async (uid: string, data: Partial<ProfileData>) => {
     try {
+        // Prevent guest users from creating profiles
+        if (auth.currentUser?.isAnonymous) {
+            console.warn("Blocked attempt to create guest profile in Firestore.");
+            return { error: null };
+        }
+
         const userRef = doc(db, 'users', uid);
 
         // Remove undefined fields to prevent Firebase errors
@@ -49,6 +55,39 @@ export const createUserProfile = async (uid: string, data: Partial<ProfileData>)
 // Get user profile from Firestore
 export const getUserProfile = async (uid: string) => {
     try {
+        // Check if user is anonymous (guest)
+        if (auth.currentUser?.isAnonymous) {
+            return {
+                user: {
+                    uid,
+                    name: 'Guest User', // Or generate "Guest #XYZ"
+                    branch: 'Guest',
+                    gender: 'Other',
+                    email: '',
+                    isGuest: true,
+                    // Minimal defaults
+                    totalCalls: 0,
+                    seasonCalls: 0,
+                    totalTalkTime: 0,
+                    createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 },
+                    lastActive: { seconds: Date.now() / 1000, nanoseconds: 0 },
+                    stats: {
+                        genderMatches: {},
+                        branchMatches: {},
+                        moodMatches: {},
+                        hobbyMatches: {}
+                    },
+                    tokens: {
+                        tokens: 5, // Give some free tokens
+                        freeTrial: 5,
+                        goldenTokensGirl: 0,
+                        goldenTokensBoy: 0
+                    }
+                } as ProfileData,
+                error: null
+            };
+        }
+
         const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
 
@@ -65,6 +104,12 @@ export const getUserProfile = async (uid: string) => {
 // Update user profile
 export const updateUserProfile = async (uid: string, data: Partial<ProfileData>) => {
     try {
+        // Prevent guest users from updating profiles
+        if (auth.currentUser?.isAnonymous) {
+            console.warn("Blocked attempt to update guest profile in Firestore.");
+            return { error: null };
+        }
+
         const userRef = doc(db, 'users', uid);
 
         // Remove undefined fields to prevent Firebase errors
@@ -85,6 +130,7 @@ export const updateUserProfile = async (uid: string, data: Partial<ProfileData>)
 // Update user's last active timestamp
 export const updateLastActive = async (uid: string) => {
     try {
+        if (auth.currentUser?.isAnonymous) return { error: null };
         const userRef = doc(db, 'users', uid);
         await updateDoc(userRef, {
             lastActive: serverTimestamp(),
