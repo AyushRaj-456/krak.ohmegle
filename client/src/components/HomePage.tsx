@@ -57,6 +57,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     const [selectedUserProfile, setSelectedUserProfile] = useState<ProfileData | null>(null);
     const [focusedUser, setFocusedUser] = useState<string | null>(null);
     const [isStatsHovered, setIsStatsHovered] = useState(false);
+    const [showDevBots, setShowDevBots] = useState(false); // Toggle for dev bots
 
     const [showPermissionHelp, setShowPermissionHelp] = useState(false);
 
@@ -333,26 +334,29 @@ export const HomePage: React.FC<HomePageProps> = ({
                             </div>
 
                             <div className="space-y-3 transition-all duration-300 ease-in-out" key={leaderboardType}>
-                                {leaderboardUsers.length === 0 ? (
-                                    <div className="text-center text-gray-500 py-10">
-                                        No ranked users yet. Be the first!
-                                    </div>
-                                ) : (
-                                    leaderboardUsers.map((user, idx) => {
-                                        const rank = idx + 1;
+                                {(() => {
+                                    // 1. Separation Logic (Role Based)
+                                    // Regular users = anyone who is NOT a devbot
+                                    const regularUsers = leaderboardUsers.filter(u => u.role !== 'devbot');
+                                    // Dev bots = anyone with role 'devbot'
+                                    const devBotUsers = leaderboardUsers.filter(u => u.role === 'devbot');
+
+                                    // 2. Render Single User Item (Helper)
+                                    const renderUserItem = (user: ProfileData, idx: number, isDevBot: boolean) => {
+                                        const rank = isDevBot ? '-' : idx + 1; // Dev bots don't have rank in main list
                                         let reward = null;
 
-                                        if (leaderboardType === 'active') {
+                                        if (!isDevBot && leaderboardType === 'active') {
                                             if (rank === 1) reward = '6 Free Trials';
                                             else if (rank === 2) reward = '4 Free Trials';
                                             else if (rank === 3) reward = '2 Free Trials';
                                         }
 
-                                        const renderMedal = (r: number) => {
+                                        const renderMedal = (r: number | string) => {
                                             if (r === 1) return <span className="text-3xl">🥇</span>;
                                             if (r === 2) return <span className="text-3xl">🥈</span>;
                                             if (r === 3) return <span className="text-3xl">🥉</span>;
-                                            return null;
+                                            return <span className="text-lg font-bold text-gray-400 w-8 text-center">{r}</span>;
                                         };
 
                                         return (
@@ -363,9 +367,11 @@ export const HomePage: React.FC<HomePageProps> = ({
                                                         setFocusedUser(focusedUser === user.uid ? null : user.uid);
                                                     }
                                                 }}
-                                                className={`relative flex items-center justify-between p-4 rounded-xl transition-all cursor-pointer ${rank <= 3
-                                                    ? 'bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-500/30'
-                                                    : 'bg-[#0f0f14] border border-white/5 hover:border-purple-500/30'
+                                                className={`relative flex items-center justify-between p-4 rounded-xl transition-all cursor-pointer ${isDevBot
+                                                    ? 'bg-purple-900/10 border border-purple-500/20'
+                                                    : (typeof rank === 'number' && rank <= 3)
+                                                        ? 'bg-gradient-to-r from-yellow-900/20 to-orange-900/20 border border-yellow-500/30'
+                                                        : 'bg-[#0f0f14] border border-white/5 hover:border-purple-500/30'
                                                     } ${focusedUser === user.uid ? 'ring-2 ring-purple-500/50 scale-[1.02]' : ''}`}
                                             >
                                                 {/* View Profile Overlay Button */}
@@ -392,11 +398,8 @@ export const HomePage: React.FC<HomePageProps> = ({
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-2">
-                                                            <span className={`text-lg font-bold ${rank <= 3 ? 'text-yellow-400' : 'text-gray-300'
-                                                                }`}>
-                                                                #{rank}
-                                                            </span>
                                                             <span className="text-white font-medium">{user.name}</span>
+                                                            {isDevBot && <span className="text-[10px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30">BOT</span>}
                                                         </div>
                                                         <span className="text-sm text-gray-500">
                                                             {leaderboardType === 'active'
@@ -421,8 +424,55 @@ export const HomePage: React.FC<HomePageProps> = ({
                                                 </div>
                                             </div>
                                         );
-                                    })
-                                )}
+                                    };
+
+                                    // 3. Empty State
+                                    if (regularUsers.length === 0 && !showDevBots) {
+                                        return (
+                                            <div className="text-center text-gray-500 py-10">
+                                                No ranked users yet. Be the first!
+                                            </div>
+                                        );
+                                    }
+
+                                    // 4. Main Render
+                                    return (
+                                        <>
+                                            {/* Regular Users */}
+                                            {regularUsers.map((user, idx) => renderUserItem(user, idx, false))}
+
+                                            {/* Separator & Dev Bots (with Transition) */}
+                                            {devBotUsers.length > 0 && (
+                                                <div className={`grid transition-all duration-500 ease-in-out ${showDevBots ? 'grid-rows-[1fr] opacity-100 py-2' : 'grid-rows-[0fr] opacity-0 py-0'
+                                                    }`}>
+                                                    <div className="overflow-hidden min-h-0">
+                                                        <div className="flex items-center gap-4 py-4">
+                                                            <div className="h-px bg-white/10 flex-1"></div>
+                                                            <span className="text-xs text-gray-500 font-mono uppercase tracking-widest">Dev Bots (for testing)</span>
+                                                            <div className="h-px bg-white/10 flex-1"></div>
+                                                        </div>
+                                                        <div className="space-y-3">
+                                                            {devBotUsers.map((user, idx) => renderUserItem(user, idx, true))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Dev Bot Toggle */}
+                                            <div className="flex justify-center mt-6">
+                                                <button
+                                                    onClick={() => setShowDevBots(!showDevBots)}
+                                                    className="group flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-all border border-white/5 hover:border-white/10"
+                                                >
+                                                    <span className={`w-2 h-2 rounded-full transition-colors ${showDevBots ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-gray-600 group-hover:bg-gray-500'}`}></span>
+                                                    <span className="text-[10px] text-gray-500 group-hover:text-gray-400 font-medium tracking-wide">
+                                                        DEV BOTS {showDevBots ? '(VISIBLE)' : '(HIDDEN)'}
+                                                    </span>
+                                                </button>
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                             </div>
 
                             <div className="mt-6 p-4 bg-purple-900/20 border border-purple-500/30 rounded-xl">

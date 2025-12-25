@@ -19,6 +19,7 @@ export interface ProfileData {
         moodMatches?: Record<string, number>;
         hobbyMatches?: Record<string, number>;
     };
+    role?: 'user' | 'admin' | 'devbot';
 }
 
 // Match preferences (optional filters)
