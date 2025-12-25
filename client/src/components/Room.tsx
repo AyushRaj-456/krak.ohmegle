@@ -13,8 +13,13 @@ interface RoomProps {
 const SERVERS = {
     iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:global.stun.twilio.com:3478' }
-    ]
+        { urls: 'stun:stun1.l.google.com:19302' },
+    ],
+    iceCandidatePoolSize: 10,
+};
+
+const logWithTime = (...args: any[]) => {
+    console.log(`[${new Date().toISOString().split('T')[1].split('.')[0]}]`, ...args);
 };
 
 const formatTime = (totalSeconds: number) => {
@@ -191,53 +196,53 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
     // ... setupWebRTC ...
     const setupWebRTC = async () => {
         try {
-            console.log("Requesting access to media devices...");
+            logWithTime("Requesting access to media devices...");
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
             if (!localVideoRef.current) {
-                console.log("Component unmounted, stopping stream");
+                logWithTime("Component unmounted, stopping stream");
                 stream.getTracks().forEach(t => t.stop());
                 return;
             }
 
-            console.log("Media access granted");
+            logWithTime("Media access granted");
             if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
-            console.log("Creating RTCPeerConnection");
+            logWithTime("Creating RTCPeerConnection");
             const peer = new RTCPeerConnection(SERVERS);
             peerRef.current = peer;
 
             stream.getTracks().forEach(track => {
                 peer.addTrack(track, stream);
-                console.log("Added local track:", track.kind);
+                logWithTime("Added local track:", track.kind);
             });
 
             // ICE Connection State Logging
             peer.oniceconnectionstatechange = () => {
-                console.log("ICE Connection State Change:", peer.iceConnectionState);
+                logWithTime("ICE Connection State Change:", peer.iceConnectionState);
                 if (peer.iceConnectionState === 'disconnected' || peer.iceConnectionState === 'failed') {
-                    console.log("ICE connection failed/disconnected. Debug info:", {
+                    logWithTime("ICE connection failed/disconnected. Debug info:", {
                         signalingState: peer.signalingState,
                         iceConnectionState: peer.iceConnectionState,
                         connectionState: peer.connectionState
                     });
                 }
                 if (peer.iceConnectionState === 'connected') {
-                    console.log("ICE Connection ESTABLISHED! Media should flow.");
+                    logWithTime("ICE Connection ESTABLISHED! Media should flow.");
                 }
             };
 
             peer.onconnectionstatechange = () => {
-                console.log("Peer Connection State Change:", peer.connectionState);
+                logWithTime("Peer Connection State Change:", peer.connectionState);
             };
 
             peer.ontrack = (event) => {
-                console.log("Received remote track:", event.track.kind, event.streams[0]?.id);
+                logWithTime("Received remote track:", event.track.kind);
 
                 let remoteStream = event.streams[0];
 
                 if (!remoteStream) {
-                    console.log("No stream in event, creating/using fallback stream");
+                    logWithTime("No stream in event, creating/using fallback stream");
                     if (remoteVideoRef.current && remoteVideoRef.current.srcObject) {
                         remoteStream = remoteVideoRef.current.srcObject as MediaStream;
                         remoteStream.addTrack(event.track);
@@ -249,7 +254,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                 if (remoteVideoRef.current) {
                     // Ensure source is set
                     if (remoteVideoRef.current.srcObject !== remoteStream) {
-                        console.log("Setting remote stream srcObject (Track kind: " + event.track.kind + ")");
+                        logWithTime("Setting remote stream srcObject (Track kind: " + event.track.kind + ")");
                         remoteVideoRef.current.srcObject = remoteStream;
                     }
 
@@ -259,9 +264,31 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                     const playPromise = remoteVideoRef.current.play();
                     if (playPromise !== undefined) {
                         playPromise.then(() => {
-                            console.log("Remote video playing successfully");
+                            logWithTime("Remote video playing successfully");
+
+                            // Monitor for blank video
+                            const checkVideo = setInterval(() => {
+                                if (remoteVideoRef.current) {
+                                    const { videoWidth, videoHeight, readyState, paused } = remoteVideoRef.current;
+                                    logWithTime(`Video Monitor: ${videoWidth}x${videoHeight}, readyState: ${readyState}, paused: ${paused}`);
+
+                                    if (videoWidth > 0 && videoHeight > 0) {
+                                        clearInterval(checkVideo);
+                                        logWithTime("Video verified visible.");
+                                    } else {
+                                        // Force refresh
+                                        logWithTime("Video blank. Forcing refresh...");
+                                        // Sometimes toggling pause helps? Or re-assigning srcObject?
+                                        // remoteVideoRef.current.pause();
+                                        // remoteVideoRef.current.play();
+                                    }
+                                } else {
+                                    clearInterval(checkVideo);
+                                }
+                            }, 2000);
+
                         }).catch(error => {
-                            console.error("Remote video play failed:", error);
+                            logWithTime("Remote video play failed:", error);
                             // Auto-retry or UI prompt?
                         });
                     }
@@ -270,14 +297,14 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
 
             peer.onicecandidate = (event) => {
                 if (event.candidate) {
-                    // console.log("Sending ICE candidate"); // Verbose
+                    // logWithTime("Sending ICE candidate"); // Verbose
                     socket.emit('ice_candidate', { roomId: matchData.roomId, candidate: event.candidate });
                 }
             };
 
             // Handle Queued Offer
             if (pendingOffer.current) {
-                console.log("Processing queued offer");
+                logWithTime("Processing queued offer");
                 const offer = pendingOffer.current;
                 pendingOffer.current = null; // Clear immediately to prevent double processing
 
@@ -294,7 +321,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
                     pendingCandidates.current.forEach(c => peer.addIceCandidate(c));
                     pendingCandidates.current = [];
                 } catch (err) {
-                    console.error("Error processing queued offer:", err);
+                    logWithTime("Error processing queued offer:", err);
                 } finally {
                     isNegotiating.current = false;
                 }
@@ -302,7 +329,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip }
 
             // Create Offer if Initiator
             if (matchData.isInitiator && !pendingOffer.current) {
-                console.log("I am initiator, creating offer");
+                logWithTime("I am initiator, creating offer");
                 if (isNegotiating.current) return;
                 isNegotiating.current = true;
 
