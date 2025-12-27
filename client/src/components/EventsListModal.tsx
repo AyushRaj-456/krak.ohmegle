@@ -8,6 +8,8 @@ interface PlanEvent {
     timestamp: Timestamp;
     creatorName: string;
     creatorId: string;
+    upvotedBy?: string[];
+    downvotedBy?: string[];
 }
 
 interface EventsListModalProps {
@@ -15,9 +17,10 @@ interface EventsListModalProps {
     onClose: () => void;
     events: PlanEvent[];
     currentUserId: string;
+    onVote: (e: React.MouseEvent, eventId: string, type: 'up' | 'down') => void;
 }
 
-export const EventsListModal: React.FC<EventsListModalProps> = ({ isOpen, onClose, events, currentUserId }) => {
+export const EventsListModal: React.FC<EventsListModalProps> = ({ isOpen, onClose, events, currentUserId, onVote }) => {
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
@@ -138,6 +141,43 @@ export const EventsListModal: React.FC<EventsListModalProps> = ({ isOpen, onClos
                                         <p className="text-sm text-gray-400">
                                             {eventTime.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
                                         </p>
+                                    </div>
+
+                                    {/* Voting Actions for List Item */}
+                                    <div className="flex items-center gap-3 mr-4 border-r border-white/5 pr-4">
+                                        <div className="flex flex-col items-center gap-1">
+                                            <button
+                                                onClick={(e) => onVote(e, event.id, 'up')}
+                                                disabled={!currentUserId}
+                                                className={`p-2 rounded-full transition-all duration-300 ${event.upvotedBy?.includes(currentUserId)
+                                                        ? 'bg-[#22c55e] text-black shadow-[0_0_10px_rgba(34,197,94,0.6)] scale-110 ring-1 ring-white/20'
+                                                        : 'text-gray-500 hover:text-[#4ade80] hover:bg-[#22c55e]/10'
+                                                    }`}
+                                                title="Upvote"
+                                            >
+                                                <svg className="w-5 h-5" fill={event.upvotedBy?.includes(currentUserId) ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" /></svg>
+                                            </button>
+                                            <span className={`text-[10px] font-bold ${event.upvotedBy && event.upvotedBy.length > 0 ? 'text-[#4ade80]' : 'text-gray-600'}`}>
+                                                {event.upvotedBy?.length || 0}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-col items-center gap-1">
+                                            <button
+                                                onClick={(e) => onVote(e, event.id, 'down')}
+                                                disabled={!currentUserId}
+                                                className={`p-2 rounded-full transition-all duration-300 ${event.downvotedBy?.includes(currentUserId)
+                                                        ? 'bg-[#ef4444] text-black shadow-[0_0_10px_rgba(239,68,68,0.6)] scale-110 ring-1 ring-white/20'
+                                                        : 'text-gray-500 hover:text-[#f87171] hover:bg-[#ef4444]/10'
+                                                    }`}
+                                                title="Downvote"
+                                            >
+                                                <svg className="w-5 h-5" fill={event.downvotedBy?.includes(currentUserId) ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5" /></svg>
+                                            </button>
+                                            <span className={`text-[10px] font-bold ${event.downvotedBy && event.downvotedBy.length > 0 ? 'text-[#f87171]' : 'text-gray-600'}`}>
+                                                {event.downvotedBy?.length || 0}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     {isOwner && (

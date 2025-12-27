@@ -20,44 +20,31 @@ service cloud.firestore {
     }
     
     match /users/{userId} {
-      // Users can read all profiles (required for Leaderboard)
       allow read: if isSignedIn();
-      
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId) && 
-                       (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']));
-      
-      // Admins (backup access)
-      allow read: if isAdmin();
-      allow update: if isAdmin();
+      allow update: if isOwner(userId) && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']));
+      allow read, update: if isAdmin();
     }
     
     match /payments/{paymentId} {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isSignedIn() && 
-                       resource.data.userId == request.auth.uid &&
-                       resource.data.status == 'pending' &&
-                       request.resource.data.status == 'pending' &&
-                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['utr', 'submittedAt']);
-      
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && resource.data.status == 'pending' && request.resource.data.status == 'pending' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['utr', 'submittedAt']);
       allow read, update, delete: if isAdmin();
     }
 
-    // NEW RULES FOR ORGANIZED PLANS
+    // ORGANIZED PLANS (Updated)
     match /organized_plans/{planId} {
-      // Allow any signed-in user (including guests) to READ plans
+      // Guests can still SEE the plans
       allow read: if isSignedIn();
       
-      // Only NON-GUEST users can CREATE plans
+      // But only non-guests can CREATE them
       allow create: if isNotGuest();
 
-      // Only the creator or an admin can delete/update
-      // Note: Since 'create' is restricted, 'update/delete' naturally follows creator ownership, 
-      // but we can enforce non-guest for write operations in general if we wanted, 
-      // but 'isOwner' logic handles the specific document rights. 
-      // We will stick to the previous 'write' if owner logic, which implies being signed in.
-      // But let's be specific for delete:
+      // REQUIRED FOR VOTING: Allow any logged-in user to update the document (to add their vote)
+      allow update: if isSignedIn();
+
+      // Only creator (non-guest) can delete
       allow delete: if isSignedIn() && resource.data.creatorId == request.auth.uid;
     }
   }

@@ -562,6 +562,22 @@ export const HomePage: React.FC<HomePageProps> = ({
                 {activeSection === 'match' && (
                     <div className="flex flex-col gap-6">
                         {/* Organize Plan Bar */}
+                        {/* Server Connection Reference */}
+                        <div
+                            onClick={() => window.location.reload()}
+                            className="flex flex-col items-center justify-center mb-6 opacity-70 hover:opacity-100 transition-opacity cursor-pointer group"
+                        >
+                            <span className="text-xs text-gray-400 font-medium mb-2 tracking-wide group-hover:text-gray-300 transition-colors">
+                                Reload if you are facing issue to connect with server
+                            </span>
+                            <div className="animate-bounce p-1.5 rounded-full bg-white/5 border border-white/10 group-hover:bg-white/10 transition-colors">
+                                <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Organize Plan Bar */}
                         <OrganizePlanBar userId={profile.uid!} userName={profile.name} />
 
                         <div className="flex flex-col lg:flex-row gap-6">
@@ -733,58 +749,62 @@ export const HomePage: React.FC<HomePageProps> = ({
                             <div className={`bg-[#16161d]/80 backdrop-blur-xl rounded-2xl p-6 border border-white/5 shadow-2xl transition-all duration-500 ease-in-out ${isStatsHovered ? 'lg:flex-[1.4]' : 'lg:flex-1'}`}>
                                 <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
                                     <h2 className="text-2xl font-bold text-white">Match Preferences</h2>
-                                    <div
-                                        onMouseEnter={() => setIsStatsHovered(true)}
-                                        onMouseLeave={() => setIsStatsHovered(false)}
-                                        className="group flex items-center gap-3 bg-[#0f0f14]/80 px-3 py-1.5 rounded-full border border-white/5 hover:border-purple-500/30 transition-all duration-500 ease-out hover:shadow-lg hover:shadow-purple-900/20 cursor-pointer w-fit self-start lg:self-auto overflow-x-auto max-w-full no-scrollbar"
-                                    >
-                                        {/* Total Users */}
-                                        <div className="flex items-center gap-2" title="Total Registered Users">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                                            <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
-                                                <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Total:</span>
+                                    <div className="flex flex-col items-start lg:items-end gap-1 w-full lg:w-auto">
+                                        <div
+                                            onMouseEnter={() => setIsStatsHovered(true)}
+                                            onMouseLeave={() => setIsStatsHovered(false)}
+                                            className="group flex items-center gap-3 bg-[#0f0f14]/80 px-3 py-1.5 rounded-full border border-white/5 hover:border-purple-500/30 transition-all duration-500 ease-out hover:shadow-lg hover:shadow-purple-900/20 cursor-pointer w-fit self-start lg:self-auto overflow-x-auto max-w-full no-scrollbar"
+                                        >
+                                            {/* Total Users */}
+                                            <div className="flex items-center gap-2" title="Total Registered Users">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                                                <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
+                                                    <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Total:</span>
+                                                </div>
+                                                <span className="text-[11px] font-bold text-white">{stats.totalUsers}</span>
                                             </div>
-                                            <span className="text-[11px] font-bold text-white">{stats.totalUsers}</span>
-                                        </div>
 
-                                        {/* Online Users */}
-                                        <div className="flex items-center gap-2" title="Online Users">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
-                                            <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
-                                                <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Online:</span>
+                                            {/* Online Users */}
+                                            <div className="flex items-center gap-2" title="Online Users">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+                                                <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
+                                                    <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Online:</span>
+                                                </div>
+                                                <span className="text-[11px] font-bold text-white">{stats.online}</span>
                                             </div>
-                                            <span className="text-[11px] font-bold text-white">{stats.online}</span>
-                                        </div>
 
-                                        {/* On Call */}
-                                        <div className="flex items-center gap-2" title="Users On Call">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
-                                            <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
-                                                <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">On Call:</span>
+                                            {/* On Call */}
+                                            <div className="flex items-center gap-2" title="Users On Call">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                                                <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
+                                                    <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">On Call:</span>
+                                                </div>
+                                                <span className="text-[11px] font-bold text-white">{stats.onCall}</span>
                                             </div>
-                                            <span className="text-[11px] font-bold text-white">{stats.onCall}</span>
-                                        </div>
 
-                                        {/* Idle Users */}
-                                        <div className="flex items-center gap-2" title="Idle Users">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.6)]" />
-                                            <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
-                                                <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Idle:</span>
+                                            {/* Idle Users */}
+                                            <div className="flex items-center gap-2" title="Idle Users">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.6)]" />
+                                                <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
+                                                    <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Idle:</span>
+                                                </div>
+                                                <span className="text-[11px] font-bold text-white">{stats.idle}</span>
                                             </div>
-                                            <span className="text-[11px] font-bold text-white">{stats.idle}</span>
-                                        </div>
 
-                                        {/* Queue Users */}
-                                        <div className="flex items-center gap-2" title="Users in Queue">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-gray-500 shadow-[0_0_8px_rgba(107,114,128,0.6)]" />
-                                            <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
-                                                <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Queue:</span>
+                                            {/* Queue Users */}
+                                            <div className="flex items-center gap-2" title="Users in Queue">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-gray-500 shadow-[0_0_8px_rgba(107,114,128,0.6)]" />
+                                                <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
+                                                    <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Queue:</span>
+                                                </div>
+                                                <span className="text-[11px] font-bold text-white">{stats.queuing}</span>
                                             </div>
-                                            <span className="text-[11px] font-bold text-white">{stats.queuing}</span>
                                         </div>
+                                        <span className="text-[10px] text-gray-400 italic mt-0.5 opacity-80 w-full text-left lg:text-right">
+                                            It may take some time to load
+                                        </span>
                                     </div>
                                 </div>
-
                                 <div className="space-y-6">
                                     {/* Match Type Selection */}
                                     <div>
@@ -937,58 +957,72 @@ export const HomePage: React.FC<HomePageProps> = ({
             </footer>
 
             {/* Token Shop Modal */}
-            {showTokenShop && (
-                <TokenShop
-                    onClose={() => setShowTokenShop(false)}
-                    onPurchase={handlePurchase}
-                />
-            )}
+            {
+                showTokenShop && (
+                    <TokenShop
+                        onClose={() => setShowTokenShop(false)}
+                        onPurchase={handlePurchase}
+                    />
+                )
+            }
 
             {/* Payment Notifications Modal */}
-            {showNotifications && (
-                <PaymentNotifications
-                    onClose={() => setShowNotifications(false)}
-                />
-            )}
+            {
+                showNotifications && (
+                    <PaymentNotifications
+                        onClose={() => setShowNotifications(false)}
+                    />
+                )
+            }
 
             {/* Payment Help Modal */}
-            {showHelp && (
-                <PaymentHelpModal
-                    onClose={() => setShowHelp(false)}
-                />
-            )}
+            {
+                showHelp && (
+                    <PaymentHelpModal
+                        onClose={() => setShowHelp(false)}
+                    />
+                )
+            }
 
             {/* Payment Caution Modal */}
-            {showCaution && (
-                <PaymentCautionModal
-                    onClose={() => setShowCaution(false)}
-                />
-            )}
+            {
+                showCaution && (
+                    <PaymentCautionModal
+                        onClose={() => setShowCaution(false)}
+                    />
+                )
+            }
 
             {/* Public Profile View Modal */}
-            {selectedUserProfile && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-                    <DashboardModal
-                        onClose={() => setSelectedUserProfile(null)}
-                        profile={selectedUserProfile}
-                    />
-                </div>
-            )}
+            {
+                selectedUserProfile && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+                        <DashboardModal
+                            onClose={() => setSelectedUserProfile(null)}
+                            profile={selectedUserProfile}
+                        />
+                    </div>
+                )
+            }
 
             {/* Donation Modal */}
-            {showDonation && (
-                <DonationModal
-                    onClose={() => setShowDonation(false)}
-                />
-            )}
+            {
+                showDonation && (
+                    <DonationModal
+                        onClose={() => setShowDonation(false)}
+                    />
+                )
+            }
 
             {/* Dashboard Modal */}
-            {showDashboard && (
-                <DashboardModal
-                    profile={profile}
-                    onClose={() => setShowDashboard(false)}
-                />
-            )}
-        </div>
+            {
+                showDashboard && (
+                    <DashboardModal
+                        profile={profile}
+                        onClose={() => setShowDashboard(false)}
+                    />
+                )
+            }
+        </div >
     );
 };
