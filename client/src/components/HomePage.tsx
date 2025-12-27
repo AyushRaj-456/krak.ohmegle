@@ -9,6 +9,7 @@ import PaymentHelpModal from './PaymentHelpModal';
 import PaymentCautionModal from './PaymentCautionModal';
 import DonationModal from './DonationModal';
 import DashboardModal from './DashboardModal';
+import { OrganizePlanBar } from './OrganizePlanBar';
 
 interface HomePageProps {
     profile: ProfileData;
@@ -559,355 +560,360 @@ export const HomePage: React.FC<HomePageProps> = ({
 
                 {/* Match Making Section */}
                 {activeSection === 'match' && (
-                    <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex flex-col gap-6">
+                        {/* Organize Plan Bar */}
+                        <OrganizePlanBar userId={profile.uid!} userName={profile.name} />
 
-                        {/* Profile Card */}
-                        <div className={`bg-[#16161d]/80 backdrop-blur-xl rounded-2xl p-6 border border-white/5 shadow-2xl transition-all duration-500 ease-in-out ${isStatsHovered ? 'lg:flex-[0.8]' : 'lg:flex-1'}`}>
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-white">Your Profile</h2>
-                                {profile.email && (
-                                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0f0f14] rounded-full border border-white/5">
-                                        <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                        </svg>
-                                        <span className="text-xs text-gray-500 font-mono">{profile.email}</span>
-                                    </div>
-                                )}
-                            </div>
+                        <div className="flex flex-col lg:flex-row gap-6">
 
-                            <div className="space-y-3 mb-6">
-                                <div className="flex items-center justify-between p-3 bg-[#0f0f14] rounded-lg">
-                                    <span className="text-gray-400 text-sm">Name</span>
-                                    <span className="text-white font-medium">{profile.name}</span>
+                            {/* Profile Card */}
+                            <div className={`bg-[#16161d]/80 backdrop-blur-xl rounded-2xl p-6 border border-white/5 shadow-2xl transition-all duration-500 ease-in-out ${isStatsHovered ? 'lg:flex-[0.8]' : 'lg:flex-1'}`}>
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-2xl font-bold text-white">Your Profile</h2>
+                                    {profile.email && (
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0f0f14] rounded-full border border-white/5">
+                                            <svg className="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                            </svg>
+                                            <span className="text-xs text-gray-500 font-mono">{profile.email}</span>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="flex items-center justify-between p-3 bg-[#0f0f14] rounded-lg">
-                                    <span className="text-gray-400 text-sm">Branch</span>
-                                    <span className="text-white font-medium">{profile.branch}</span>
-                                </div>
-                                <div className="flex items-center justify-between p-3 bg-[#0f0f14] rounded-lg">
-                                    <span className="text-gray-400 text-sm">Gender</span>
-                                    <span className="text-white font-medium">{profile.gender}</span>
-                                </div>
-                                {profile.year && (
+
+                                <div className="space-y-3 mb-6">
                                     <div className="flex items-center justify-between p-3 bg-[#0f0f14] rounded-lg">
-                                        <span className="text-gray-400 text-sm">Year</span>
-                                        <span className="text-white font-medium">{profile.year}</span>
+                                        <span className="text-gray-400 text-sm">Name</span>
+                                        <span className="text-white font-medium">{profile.name}</span>
                                     </div>
-                                )}
-                                {profile.bio && (
-                                    <div className="p-3 bg-[#0f0f14] rounded-lg">
-                                        <span className="text-gray-400 text-sm block mb-2">Bio</span>
-                                        <p className="text-white text-sm">{profile.bio}</p>
+                                    <div className="flex items-center justify-between p-3 bg-[#0f0f14] rounded-lg">
+                                        <span className="text-gray-400 text-sm">Branch</span>
+                                        <span className="text-white font-medium">{profile.branch}</span>
                                     </div>
-                                )}
-                                {(profile.hobbies && profile.hobbies.length > 0) || (profile.languages && profile.languages.length > 0) ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {profile.hobbies && profile.hobbies.length > 0 && (
-                                            <div className="p-3 bg-[#0f0f14] rounded-lg">
-                                                <span className="text-gray-400 text-sm block mb-2">Hobbies</span>
-                                                <div className="flex flex-col gap-2">
-                                                    {profile.hobbies.map((hobby, idx) => (
-                                                        <span key={idx} className="text-xs bg-purple-600/20 text-purple-300 px-2 py-1 rounded-full border border-purple-600/30 w-fit">
-                                                            {hobby}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                        {profile.languages && profile.languages.length > 0 && (
-                                            <div className="p-3 bg-[#0f0f14] rounded-lg">
-                                                <span className="text-gray-400 text-sm block mb-2">Languages</span>
-                                                <div className="flex flex-col gap-2">
-                                                    {profile.languages.map((language, idx) => (
-                                                        <span key={idx} className="text-xs bg-blue-600/20 text-blue-300 px-2 py-1 rounded-full border border-blue-600/30 w-fit">
-                                                            {language}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
+                                    <div className="flex items-center justify-between p-3 bg-[#0f0f14] rounded-lg">
+                                        <span className="text-gray-400 text-sm">Gender</span>
+                                        <span className="text-white font-medium">{profile.gender}</span>
                                     </div>
-                                ) : null}
-                            </div>
-
-                            <button
-                                onClick={onEditProfile}
-                                className="w-full bg-[#0f0f14] hover:bg-[#1a1a24] text-white font-medium py-2.5 rounded-lg transition-all border border-white/5 hover:border-purple-500/50"
-                            >
-                                Edit Profile
-                            </button>
-                            <button
-                                onClick={() => setShowDashboard(true)}
-                                className="w-full bg-[#0f0f14] hover:bg-[#1a1a24] text-white font-medium py-2.5 rounded-lg transition-all border border-white/5 hover:border-blue-500/50 mt-3 flex items-center justify-center gap-2"
-                            >
-                                <span>📊</span> Dashboard
-                            </button>
-
-                            {/* Permission Toggles */}
-                            <div className="mt-4 space-y-3 bg-[#0f0f14] p-4 rounded-xl border border-white/5 relative">
-                                <div className="flex items-center justify-between mb-2">
-                                    <h3 className="text-sm font-medium text-gray-400">Device Permissions</h3>
-                                    <button
-                                        onClick={() => setShowPermissionHelp(true)}
-                                        className="text-gray-400 hover:text-white transition-colors"
-                                        title="Need Help?"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                                    </button>
-                                </div>
-
-                                {/* Camera Status */}
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg ${cameraAllowed ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
+                                    {profile.year && (
+                                        <div className="flex items-center justify-between p-3 bg-[#0f0f14] rounded-lg">
+                                            <span className="text-gray-400 text-sm">Year</span>
+                                            <span className="text-white font-medium">{profile.year}</span>
                                         </div>
-                                        <span className="text-white font-medium">Camera Access</span>
-                                    </div>
-                                    <button
-                                        onClick={async () => {
-                                            if (!cameraAllowed) {
-                                                try {
-                                                    await navigator.mediaDevices.getUserMedia({ video: true });
-                                                } catch (err) {
-                                                    onAlert("⚠️ Camera permission denied. Please allow it in settings.");
-                                                }
-                                            }
-                                        }}
-                                        className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${cameraAllowed
-                                            ? 'bg-green-500/20 text-green-400 cursor-default'
-                                            : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                                            }`}
-                                    >
-                                        {cameraAllowed ? 'ON' : 'OFF'}
-                                    </button>
-                                </div>
-
-                                {/* Mic Status */}
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`p-2 rounded-lg ${micAllowed ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                            </svg>
+                                    )}
+                                    {profile.bio && (
+                                        <div className="p-3 bg-[#0f0f14] rounded-lg">
+                                            <span className="text-gray-400 text-sm block mb-2">Bio</span>
+                                            <p className="text-white text-sm">{profile.bio}</p>
                                         </div>
-                                        <span className="text-white font-medium">Microphone Access</span>
-                                    </div>
-                                    <button
-                                        onClick={async () => {
-                                            if (!micAllowed) {
-                                                try {
-                                                    await navigator.mediaDevices.getUserMedia({ audio: true });
-                                                } catch (err) {
-                                                    onAlert("⚠️ Microphone permission denied. Please allow it in settings.");
-                                                }
-                                            }
-                                        }}
-                                        className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${micAllowed
-                                            ? 'bg-green-500/20 text-green-400 cursor-default'
-                                            : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                                            }`}
-                                    >
-                                        {micAllowed ? 'ON' : 'OFF'}
-                                    </button>
+                                    )}
+                                    {(profile.hobbies && profile.hobbies.length > 0) || (profile.languages && profile.languages.length > 0) ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            {profile.hobbies && profile.hobbies.length > 0 && (
+                                                <div className="p-3 bg-[#0f0f14] rounded-lg">
+                                                    <span className="text-gray-400 text-sm block mb-2">Hobbies</span>
+                                                    <div className="flex flex-col gap-2">
+                                                        {profile.hobbies.map((hobby, idx) => (
+                                                            <span key={idx} className="text-xs bg-purple-600/20 text-purple-300 px-2 py-1 rounded-full border border-purple-600/30 w-fit">
+                                                                {hobby}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {profile.languages && profile.languages.length > 0 && (
+                                                <div className="p-3 bg-[#0f0f14] rounded-lg">
+                                                    <span className="text-gray-400 text-sm block mb-2">Languages</span>
+                                                    <div className="flex flex-col gap-2">
+                                                        {profile.languages.map((language, idx) => (
+                                                            <span key={idx} className="text-xs bg-blue-600/20 text-blue-300 px-2 py-1 rounded-full border border-blue-600/30 w-fit">
+                                                                {language}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : null}
                                 </div>
-                            </div>
 
-                            <p
-                                onClick={() => setShowDonation(true)}
-                                className="text-[#ec4899] hover:text-[#db2777] text-sm cursor-pointer hover:underline transition-colors font-medium flex items-center justify-center gap-1 mt-4"
-                            >
-                                Support with a cup of tea
-                            </p>
-                        </div>
-
-
-                        {/* Match Preferences Card */}
-                        <div className={`bg-[#16161d]/80 backdrop-blur-xl rounded-2xl p-6 border border-white/5 shadow-2xl transition-all duration-500 ease-in-out ${isStatsHovered ? 'lg:flex-[1.4]' : 'lg:flex-1'}`}>
-                            <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
-                                <h2 className="text-2xl font-bold text-white">Match Preferences</h2>
-                                <div
-                                    onMouseEnter={() => setIsStatsHovered(true)}
-                                    onMouseLeave={() => setIsStatsHovered(false)}
-                                    className="group flex items-center gap-3 bg-[#0f0f14]/80 px-3 py-1.5 rounded-full border border-white/5 hover:border-purple-500/30 transition-all duration-500 ease-out hover:shadow-lg hover:shadow-purple-900/20 cursor-pointer w-fit self-start lg:self-auto overflow-x-auto max-w-full no-scrollbar"
+                                <button
+                                    onClick={onEditProfile}
+                                    className="w-full bg-[#0f0f14] hover:bg-[#1a1a24] text-white font-medium py-2.5 rounded-lg transition-all border border-white/5 hover:border-purple-500/50"
                                 >
-                                    {/* Total Users */}
-                                    <div className="flex items-center gap-2" title="Total Registered Users">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
-                                        <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
-                                            <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Total:</span>
-                                        </div>
-                                        <span className="text-[11px] font-bold text-white">{stats.totalUsers}</span>
+                                    Edit Profile
+                                </button>
+                                <button
+                                    onClick={() => setShowDashboard(true)}
+                                    className="w-full bg-[#0f0f14] hover:bg-[#1a1a24] text-white font-medium py-2.5 rounded-lg transition-all border border-white/5 hover:border-blue-500/50 mt-3 flex items-center justify-center gap-2"
+                                >
+                                    <span>📊</span> Dashboard
+                                </button>
+
+                                {/* Permission Toggles */}
+                                <div className="mt-4 space-y-3 bg-[#0f0f14] p-4 rounded-xl border border-white/5 relative">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h3 className="text-sm font-medium text-gray-400">Device Permissions</h3>
+                                        <button
+                                            onClick={() => setShowPermissionHelp(true)}
+                                            className="text-gray-400 hover:text-white transition-colors"
+                                            title="Need Help?"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                        </button>
                                     </div>
 
-                                    {/* Online Users */}
-                                    <div className="flex items-center gap-2" title="Online Users">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
-                                        <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
-                                            <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Online:</span>
+                                    {/* Camera Status */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-lg ${cameraAllowed ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            <span className="text-white font-medium">Camera Access</span>
                                         </div>
-                                        <span className="text-[11px] font-bold text-white">{stats.online}</span>
+                                        <button
+                                            onClick={async () => {
+                                                if (!cameraAllowed) {
+                                                    try {
+                                                        await navigator.mediaDevices.getUserMedia({ video: true });
+                                                    } catch (err) {
+                                                        onAlert("⚠️ Camera permission denied. Please allow it in settings.");
+                                                    }
+                                                }
+                                            }}
+                                            className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${cameraAllowed
+                                                ? 'bg-green-500/20 text-green-400 cursor-default'
+                                                : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                                                }`}
+                                        >
+                                            {cameraAllowed ? 'ON' : 'OFF'}
+                                        </button>
                                     </div>
 
-                                    {/* On Call */}
-                                    <div className="flex items-center gap-2" title="Users On Call">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
-                                        <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
-                                            <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">On Call:</span>
+                                    {/* Mic Status */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-lg ${micAllowed ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                                </svg>
+                                            </div>
+                                            <span className="text-white font-medium">Microphone Access</span>
                                         </div>
-                                        <span className="text-[11px] font-bold text-white">{stats.onCall}</span>
-                                    </div>
-
-                                    {/* Idle Users */}
-                                    <div className="flex items-center gap-2" title="Idle Users">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.6)]" />
-                                        <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
-                                            <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Idle:</span>
-                                        </div>
-                                        <span className="text-[11px] font-bold text-white">{stats.idle}</span>
-                                    </div>
-
-                                    {/* Queue Users */}
-                                    <div className="flex items-center gap-2" title="Users in Queue">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-gray-500 shadow-[0_0_8px_rgba(107,114,128,0.6)]" />
-                                        <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
-                                            <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Queue:</span>
-                                        </div>
-                                        <span className="text-[11px] font-bold text-white">{stats.queuing}</span>
+                                        <button
+                                            onClick={async () => {
+                                                if (!micAllowed) {
+                                                    try {
+                                                        await navigator.mediaDevices.getUserMedia({ audio: true });
+                                                    } catch (err) {
+                                                        onAlert("⚠️ Microphone permission denied. Please allow it in settings.");
+                                                    }
+                                                }
+                                            }}
+                                            className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${micAllowed
+                                                ? 'bg-green-500/20 text-green-400 cursor-default'
+                                                : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                                                }`}
+                                        >
+                                            {micAllowed ? 'ON' : 'OFF'}
+                                        </button>
                                     </div>
                                 </div>
+
+                                <p
+                                    onClick={() => setShowDonation(true)}
+                                    className="text-[#ec4899] hover:text-[#db2777] text-sm cursor-pointer hover:underline transition-colors font-medium flex items-center justify-center gap-1 mt-4"
+                                >
+                                    Support with a cup of tea
+                                </p>
                             </div>
 
-                            <div className="space-y-6">
-                                {/* Match Type Selection */}
-                                <div>
-                                    <label className="block text-sm font-medium mb-2 text-gray-400">
-                                        Match Type
-                                    </label>
-                                    <div className="space-y-2">
-                                        <label className="flex items-center p-3 bg-[#0f0f14] rounded-lg border border-white/5 hover:border-purple-500/30 cursor-pointer transition-all">
-                                            <input
-                                                type="radio"
-                                                name="matchType"
-                                                value="regular"
-                                                checked={matchType === 'regular'}
-                                                onChange={(e) => setMatchType(e.target.value as MatchType)}
-                                                className="mr-3"
-                                            />
-                                            <div className="flex-1">
-                                                <span className="text-white font-medium">Regular Match</span>
-                                                <p className="text-gray-500 text-xs">Uses free trial or 1 regular token</p>
-                                            </div>
-                                            <span className="text-2xl">🪙</span>
-                                        </label>
 
-                                        <label
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                onAlert("Will be introduced later");
-                                            }}
-                                            className="flex items-center p-3 bg-gradient-to-r from-yellow-900/10 to-orange-900/10 rounded-lg border border-yellow-500/20 cursor-not-allowed transition-all relative overflow-hidden group"
-                                        >
-                                            <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px] z-10 flex items-center justify-center">
-                                                <span className="text-xs font-bold text-white bg-black/50 px-2 py-1 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    🔒 Coming Soon
-                                                </span>
+                            {/* Match Preferences Card */}
+                            <div className={`bg-[#16161d]/80 backdrop-blur-xl rounded-2xl p-6 border border-white/5 shadow-2xl transition-all duration-500 ease-in-out ${isStatsHovered ? 'lg:flex-[1.4]' : 'lg:flex-1'}`}>
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
+                                    <h2 className="text-2xl font-bold text-white">Match Preferences</h2>
+                                    <div
+                                        onMouseEnter={() => setIsStatsHovered(true)}
+                                        onMouseLeave={() => setIsStatsHovered(false)}
+                                        className="group flex items-center gap-3 bg-[#0f0f14]/80 px-3 py-1.5 rounded-full border border-white/5 hover:border-purple-500/30 transition-all duration-500 ease-out hover:shadow-lg hover:shadow-purple-900/20 cursor-pointer w-fit self-start lg:self-auto overflow-x-auto max-w-full no-scrollbar"
+                                    >
+                                        {/* Total Users */}
+                                        <div className="flex items-center gap-2" title="Total Registered Users">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                                            <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
+                                                <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Total:</span>
                                             </div>
-                                            <input
-                                                type="radio"
-                                                name="matchType"
-                                                value="golden"
-                                                checked={false} // Force unchecked
-                                                disabled
-                                                className="mr-3"
-                                            />
-                                            <div className="flex-1 filter blur-[1px]">
-                                                <span className="text-white font-medium">Golden Match</span>
-                                                <p className="text-gray-400 text-xs">Uses 1 Golden token - Higher chance to match with opposite gender</p>
+                                            <span className="text-[11px] font-bold text-white">{stats.totalUsers}</span>
+                                        </div>
+
+                                        {/* Online Users */}
+                                        <div className="flex items-center gap-2" title="Online Users">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+                                            <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
+                                                <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Online:</span>
                                             </div>
-                                            <span className="text-2xl filter blur-[1px]">⭐</span>
-                                        </label>
+                                            <span className="text-[11px] font-bold text-white">{stats.online}</span>
+                                        </div>
+
+                                        {/* On Call */}
+                                        <div className="flex items-center gap-2" title="Users On Call">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                                            <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
+                                                <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">On Call:</span>
+                                            </div>
+                                            <span className="text-[11px] font-bold text-white">{stats.onCall}</span>
+                                        </div>
+
+                                        {/* Idle Users */}
+                                        <div className="flex items-center gap-2" title="Idle Users">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.6)]" />
+                                            <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
+                                                <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Idle:</span>
+                                            </div>
+                                            <span className="text-[11px] font-bold text-white">{stats.idle}</span>
+                                        </div>
+
+                                        {/* Queue Users */}
+                                        <div className="flex items-center gap-2" title="Users in Queue">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-gray-500 shadow-[0_0_8px_rgba(107,114,128,0.6)]" />
+                                            <div className="max-w-0 overflow-hidden opacity-0 group-hover:max-w-[100px] group-hover:opacity-100 transition-all duration-500 ease-in-out delay-0 group-hover:delay-300">
+                                                <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap mr-1.5">Queue:</span>
+                                            </div>
+                                            <span className="text-[11px] font-bold text-white">{stats.queuing}</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Preferred Branch */}
-                                <div>
-                                    <label className="block text-sm font-medium mb-2 text-gray-400">
-                                        Preferred Branch
-                                    </label>
-                                    <select
-                                        className="w-full bg-[#0f0f14] text-white rounded-lg px-4 py-3 border border-white/5 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all cursor-pointer"
-                                        value={preferredBranch}
-                                        onChange={(e) => setPreferredBranch(e.target.value)}
-                                    >
-                                        <option value="" className="bg-[#16161d]">Any Branch</option>
-                                        {BRANCHES.map(b => <option key={b} value={b} className="bg-[#16161d]">{b}</option>)}
-                                    </select>
-                                </div>
-
-                                {/* Preferred Gender */}
-                                {matchType === 'regular' && (
+                                <div className="space-y-6">
+                                    {/* Match Type Selection */}
                                     <div>
                                         <label className="block text-sm font-medium mb-2 text-gray-400">
-                                            Preferred Gender
+                                            Match Type
+                                        </label>
+                                        <div className="space-y-2">
+                                            <label className="flex items-center p-3 bg-[#0f0f14] rounded-lg border border-white/5 hover:border-purple-500/30 cursor-pointer transition-all">
+                                                <input
+                                                    type="radio"
+                                                    name="matchType"
+                                                    value="regular"
+                                                    checked={matchType === 'regular'}
+                                                    onChange={(e) => setMatchType(e.target.value as MatchType)}
+                                                    className="mr-3"
+                                                />
+                                                <div className="flex-1">
+                                                    <span className="text-white font-medium">Regular Match</span>
+                                                    <p className="text-gray-500 text-xs">Uses free trial or 1 regular token</p>
+                                                </div>
+                                                <span className="text-2xl">🪙</span>
+                                            </label>
+
+                                            <label
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    onAlert("Will be introduced later");
+                                                }}
+                                                className="flex items-center p-3 bg-gradient-to-r from-yellow-900/10 to-orange-900/10 rounded-lg border border-yellow-500/20 cursor-not-allowed transition-all relative overflow-hidden group"
+                                            >
+                                                <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                                                    <span className="text-xs font-bold text-white bg-black/50 px-2 py-1 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        🔒 Coming Soon
+                                                    </span>
+                                                </div>
+                                                <input
+                                                    type="radio"
+                                                    name="matchType"
+                                                    value="golden"
+                                                    checked={false} // Force unchecked
+                                                    disabled
+                                                    className="mr-3"
+                                                />
+                                                <div className="flex-1 filter blur-[1px]">
+                                                    <span className="text-white font-medium">Golden Match</span>
+                                                    <p className="text-gray-400 text-xs">Uses 1 Golden token - Higher chance to match with opposite gender</p>
+                                                </div>
+                                                <span className="text-2xl filter blur-[1px]">⭐</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Preferred Branch */}
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2 text-gray-400">
+                                            Preferred Branch
                                         </label>
                                         <select
                                             className="w-full bg-[#0f0f14] text-white rounded-lg px-4 py-3 border border-white/5 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all cursor-pointer"
-                                            value={preferredGender}
-                                            onChange={(e) => setPreferredGender(e.target.value)}
+                                            value={preferredBranch}
+                                            onChange={(e) => setPreferredBranch(e.target.value)}
                                         >
-                                            <option value="" className="bg-[#16161d]">Any Gender</option>
-                                            {GENDERS.map(g => <option key={g} value={g} className="bg-[#16161d]">{g}</option>)}
+                                            <option value="" className="bg-[#16161d]">Any Branch</option>
+                                            {BRANCHES.map(b => <option key={b} value={b} className="bg-[#16161d]">{b}</option>)}
                                         </select>
                                     </div>
-                                )}
 
-                                {/* Mood Input */}
-                                <div>
-                                    <label className="block text-sm font-medium mb-2 text-gray-400">
-                                        Current Mood
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="w-full bg-[#0f0f14] text-white rounded-lg px-4 py-3 border border-white/5 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all placeholder-gray-600"
-                                        placeholder="e.g., Happy, Bored, Excited"
-                                        value={mood}
-                                        onChange={(e) => setMood(e.target.value)}
-                                    />
-                                </div>
+                                    {/* Preferred Gender */}
+                                    {matchType === 'regular' && (
+                                        <div>
+                                            <label className="block text-sm font-medium mb-2 text-gray-400">
+                                                Preferred Gender
+                                            </label>
+                                            <select
+                                                className="w-full bg-[#0f0f14] text-white rounded-lg px-4 py-3 border border-white/5 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all cursor-pointer"
+                                                value={preferredGender}
+                                                onChange={(e) => setPreferredGender(e.target.value)}
+                                            >
+                                                <option value="" className="bg-[#16161d]">Any Gender</option>
+                                                {GENDERS.map(g => <option key={g} value={g} className="bg-[#16161d]">{g}</option>)}
+                                            </select>
+                                        </div>
+                                    )}
 
-                                {/* Preferred Language */}
-                                <div>
-                                    <label className="block text-sm font-medium mb-2 text-gray-400">
-                                        Preferred Language
-                                    </label>
-                                    <select
-                                        className="w-full bg-[#0f0f14] text-white rounded-lg px-4 py-3 border border-white/5 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all cursor-pointer"
-                                        value={preferredLanguage}
-                                        onChange={(e) => setPreferredLanguage(e.target.value)}
+                                    {/* Mood Input */}
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2 text-gray-400">
+                                            Current Mood
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="w-full bg-[#0f0f14] text-white rounded-lg px-4 py-3 border border-white/5 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all placeholder-gray-600"
+                                            placeholder="e.g., Happy, Bored, Excited"
+                                            value={mood}
+                                            onChange={(e) => setMood(e.target.value)}
+                                        />
+                                    </div>
+
+                                    {/* Preferred Language */}
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2 text-gray-400">
+                                            Preferred Language
+                                        </label>
+                                        <select
+                                            className="w-full bg-[#0f0f14] text-white rounded-lg px-4 py-3 border border-white/5 focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all cursor-pointer"
+                                            value={preferredLanguage}
+                                            onChange={(e) => setPreferredLanguage(e.target.value)}
+                                        >
+                                            <option value="" className="bg-[#16161d]">Any Language</option>
+                                            {LANGUAGES.map(l => <option key={l} value={l} className="bg-[#16161d]">{l}</option>)}
+                                        </select>
+                                    </div>
+
+
+
+                                    {/* Join Room Button */}
+                                    <button
+                                        onClick={handleJoinRoom}
+                                        disabled={!hasTokens() || !isConnected}
+                                        className={`w-full font-medium py-3.5 rounded-lg transition-all mt-2 ${hasTokens() && isConnected
+                                            ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40 hover:scale-[1.02] active:scale-[0.98]'
+                                            : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                                            }`}
                                     >
-                                        <option value="" className="bg-[#16161d]">Any Language</option>
-                                        {LANGUAGES.map(l => <option key={l} value={l} className="bg-[#16161d]">{l}</option>)}
-                                    </select>
+                                        {!isConnected
+                                            ? 'Starting server(Connecting...)'
+                                            : (hasTokens() ? 'Join a Room' : 'No Tokens Available - Buy Tokens')}
+                                    </button>
                                 </div>
-
-
-
-                                {/* Join Room Button */}
-                                <button
-                                    onClick={handleJoinRoom}
-                                    disabled={!hasTokens() || !isConnected}
-                                    className={`w-full font-medium py-3.5 rounded-lg transition-all mt-2 ${hasTokens() && isConnected
-                                        ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-600/30 hover:shadow-purple-600/40 hover:scale-[1.02] active:scale-[0.98]'
-                                        : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                                        }`}
-                                >
-                                    {!isConnected
-                                        ? 'Starting server(Connecting...)'
-                                        : (hasTokens() ? 'Join a Room' : 'No Tokens Available - Buy Tokens')}
-                                </button>
                             </div>
                         </div>
                     </div>

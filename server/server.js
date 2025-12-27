@@ -77,6 +77,28 @@ setInterval(() => {
     io.emit('server_stats', stats);
 }, 5000);
 
+// Cleanup expired plans every 30 minutes
+setInterval(async () => {
+    try {
+        // Delete plans that started more than 30 minutes ago
+        const thirtyMinutesAgo = admin.firestore.Timestamp.fromMillis(Date.now() - 30 * 60 * 1000);
+        const snapshot = await admin.firestore().collection('organized_plans')
+            .where('timestamp', '<', thirtyMinutesAgo)
+            .get();
+
+        if (!snapshot.empty) {
+            const batch = admin.firestore().batch();
+            snapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+            console.log(`🧹 Cleaned up ${snapshot.size} expired organized plans.`);
+        }
+    } catch (error) {
+        console.error('Error cleaning up plans:', error);
+    }
+}, 30 * 60 * 1000); // 30 minutes
+
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
     userManager.handleConnection(socket);
