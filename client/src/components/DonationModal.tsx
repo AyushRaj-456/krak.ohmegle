@@ -6,7 +6,7 @@ interface DonationModalProps {
     onClose: () => void;
 }
 
-const UPI_ID = "ayushraj.xoxo@oksbi"; // <--- CHANGE THIS TO YOUR UPI ID
+const UPI_ID = "--"; // <--- CHANGE THIS TO YOUR UPI ID
 
 export default function DonationModal({ onClose }: DonationModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
