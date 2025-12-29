@@ -155,6 +155,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
     return (
         <div className="relative min-h-screen bg-[#0a0a0f] p-6">
+
             {/* Subtle background elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-20 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl"></div>
@@ -164,55 +165,57 @@ export const HomePage: React.FC<HomePageProps> = ({
 
             {/* Header */}
             {/* Permission Help Modal */}
-            {showPermissionHelp && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowPermissionHelp(false)}>
-                    <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl relative" onClick={e => e.stopPropagation()}>
-                        <button
-                            onClick={() => setShowPermissionHelp(false)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-white"
-                        >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
+            {
+                showPermissionHelp && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowPermissionHelp(false)}>
+                        <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700 shadow-2xl relative" onClick={e => e.stopPropagation()}>
+                            <button
+                                onClick={() => setShowPermissionHelp(false)}
+                                className="absolute top-4 right-4 text-gray-400 hover:text-white"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
 
-                        <div className="text-center mb-6">
-                            <div className="w-16 h-16 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                            <div className="text-center mb-6">
+                                <div className="w-16 h-16 bg-purple-600/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                                </div>
+                                <h2 className="text-xl font-bold text-white mb-2">Enable Camera & Mic</h2>
+                                <p className="text-gray-400 text-sm">You need these permissions to chat!</p>
                             </div>
-                            <h2 className="text-xl font-bold text-white mb-2">Enable Camera & Mic</h2>
-                            <p className="text-gray-400 text-sm">You need these permissions to chat!</p>
+
+                            <div className="space-y-4">
+                                <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                                    <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                                        <span className="bg-indigo-600 text-xs px-2 py-0.5 rounded text-white">Method 1</span>
+                                        Address Bar
+                                    </h3>
+                                    <p className="text-sm text-gray-300">
+                                        Click the <strong className="text-white">Lock/Settings icon (🔒)</strong> on the left side of your browser's address bar. Toggle Camera & Microphone to <strong className="text-green-400">ON</strong>.
+                                    </p>
+                                </div>
+
+                                <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                                    <h3 className="font-bold text-white mb-2 flex items-center gap-2">
+                                        <span className="bg-gray-600 text-xs px-2 py-0.5 rounded text-white">Method 2</span>
+                                        Browser Settings
+                                    </h3>
+                                    <p className="text-sm text-gray-300">
+                                        Go to <strong className="text-white">Settings {'>'} Privacy & Security {'>'} Site Settings</strong>. Find this site and select "Reset Permissions" or manually Allow.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => setShowPermissionHelp(false)}
+                                className="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition-colors"
+                            >
+                                Got it!
+                            </button>
                         </div>
-
-                        <div className="space-y-4">
-                            <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
-                                <h3 className="font-bold text-white mb-2 flex items-center gap-2">
-                                    <span className="bg-indigo-600 text-xs px-2 py-0.5 rounded text-white">Method 1</span>
-                                    Address Bar
-                                </h3>
-                                <p className="text-sm text-gray-300">
-                                    Click the <strong className="text-white">Lock/Settings icon (🔒)</strong> on the left side of your browser's address bar. Toggle Camera & Microphone to <strong className="text-green-400">ON</strong>.
-                                </p>
-                            </div>
-
-                            <div className="bg-gray-800 p-4 rounded-xl border border-gray-700">
-                                <h3 className="font-bold text-white mb-2 flex items-center gap-2">
-                                    <span className="bg-gray-600 text-xs px-2 py-0.5 rounded text-white">Method 2</span>
-                                    Browser Settings
-                                </h3>
-                                <p className="text-sm text-gray-300">
-                                    Go to <strong className="text-white">Settings {'>'} Privacy & Security {'>'} Site Settings</strong>. Find this site and select "Reset Permissions" or manually Allow.
-                                </p>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => setShowPermissionHelp(false)}
-                            className="w-full mt-6 bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition-colors"
-                        >
-                            Got it!
-                        </button>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             <div className="relative max-w-7xl mx-auto mb-6">
                 <div className="flex items-center justify-between">
