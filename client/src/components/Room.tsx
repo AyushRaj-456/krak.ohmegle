@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { Socket } from 'socket.io-client';
 import type { MatchData, Message, User } from '../types';
 import { ReportModal } from './ReportModal';
-import { ServerStoppedOverlay } from './ServerStoppedOverlay';
 
 interface RoomProps {
     socket: Socket;
@@ -31,6 +30,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
     // Default chat to OPEN if in text mode
     const [isChatOpen, setIsChatOpen] = useState(user.mode === 'text');
     const [partnerChatOpen, setPartnerChatOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     // Existing State
     const [messages, setMessages] = useState<Message[]>([]);
@@ -81,7 +81,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
         socket.on('message', (msg: { text: string }) => {
             setMessages(prev => [...prev, { sender: 'partner', text: msg.text, timestamp: Date.now() }]);
             if (!isChatOpenRef.current && user.mode !== 'text') {
-                // setUnreadCount(prev => prev + 1); 
+                setUnreadCount(prev => prev + 1);
             }
         });
 
@@ -99,6 +99,12 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
                 }
                 isNegotiating.current = true;
                 try {
+                    // Check if peer exists, else wait or re-init (though it should be handled by setupWebRTC call)
+                    if (!peerRef.current) {
+                        // Should not happen if logic is correct, but safe guard
+                        return;
+                    }
+
                     await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
                     const answer = await peerRef.current.createAnswer();
                     await peerRef.current.setLocalDescription(answer);
@@ -138,6 +144,50 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
 
             // Initialize WebRTC
             setupWebRTC();
+        } else if (user.mode === 'text') {
+            // Enable WebRTC for Audio in Text Mode
+            // Same handlers but we might need to be careful about not expecting video tracks?
+            // Actually, the handlers are generic enough. The main diff is setupWebRTC constraints.
+            // DUPLICATING LISTENERS for clarity and to allow 'text' mode access
+
+            socket.on('offer', async (offer) => {
+                console.log("TextMode: Received offer");
+                if (!peerRef.current) {
+                    pendingOffer.current = offer;
+                    // setupWebRTC will be called below
+                } else {
+                    if (isNegotiating.current) return;
+                    isNegotiating.current = true;
+                    try {
+                        await peerRef.current.setRemoteDescription(new RTCSessionDescription(offer));
+                        const answer = await peerRef.current.createAnswer();
+                        await peerRef.current.setLocalDescription(answer);
+                        socket.emit('answer', { roomId: matchData.roomId, answer });
+                        pendingCandidates.current.forEach(c => peerRef.current?.addIceCandidate(c));
+                        pendingCandidates.current = [];
+                    } catch (err) { console.error(err); }
+                    finally { isNegotiating.current = false; }
+                }
+            });
+
+            socket.on('answer', async (answer) => {
+                if (!peerRef.current) return;
+                try {
+                    await peerRef.current.setRemoteDescription(new RTCSessionDescription(answer));
+                    pendingCandidates.current.forEach(c => peerRef.current?.addIceCandidate(c));
+                    pendingCandidates.current = [];
+                } catch (err) { console.error(err); }
+            });
+
+            socket.on('ice_candidate', async (candidate) => {
+                if (peerRef.current && peerRef.current.remoteDescription) {
+                    try { await peerRef.current.addIceCandidate(candidate); } catch (e) { }
+                } else {
+                    pendingCandidates.current.push(candidate);
+                }
+            });
+
+            setupWebRTC();
         }
 
         return () => {
@@ -160,12 +210,17 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
     const isNegotiating = useRef(false);
 
     const setupWebRTC = async () => {
-        // SKIP WebRTC setup if in Text Mode
-        if (user.mode === 'text') return;
+        // SKIP WebRTC setup if in Text Mode? NO, now we want Audio.
+        // if (user.mode === 'text') return;
 
         try {
             logWithTime("Requesting access to media devices...");
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            // Constraints based on mode
+            const constraints = user.mode === 'text'
+                ? { video: false, audio: true }
+                : { video: true, audio: true };
+
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
             if (!localVideoRef.current) {
                 logWithTime("Component unmounted, stopping stream");
@@ -197,6 +252,9 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
                     remoteVideoRef.current.srcObject = remoteStream;
                     remoteVideoRef.current.play();
                 }
+                // Also play in audio element if it exists (for text mode)
+                // Actually if we reuse remoteVideoRef for audio in text mode (it's a video tag), it works for audio too.
+                // But let's look for a dedicated audio ref if we add one, or just ensure remoteVideoRef is rendered hidden.
             };
 
             peer.onicecandidate = (event) => {
@@ -253,9 +311,11 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
         socket.emit('message', { roomId: matchData.roomId, message: { text: inputText } });
         setMessages(prev => [...prev, { sender: 'me', text: inputText, timestamp: Date.now() }]);
         setInputText('');
+        setInputText('');
     };
 
     const toggleMic = () => {
+        // For local stream updates
         if (localVideoRef.current && localVideoRef.current.srcObject) {
             const stream = localVideoRef.current.srcObject as MediaStream;
             const audioTrack = stream.getAudioTracks()[0];
@@ -282,7 +342,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
         const newState = !isChatOpen;
         setIsChatOpen(newState);
         if (newState) {
-            // setUnreadCount(0);
+            setUnreadCount(0);
         }
         socket.emit('chat_status', { roomId: matchData.roomId, isOpen: newState });
     };
@@ -305,10 +365,6 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
                     : 'w-full h-full'
                     }`}>
 
-                    {/* SERVER STOPPED OVERLAY */}
-                    <div className="absolute inset-0 z-[50]">
-                        <ServerStoppedOverlay onExit={onLeave} />
-                    </div>
 
                     {/* Remote Video (Hidden/Behind Overlay) */}
                     <video
@@ -323,8 +379,11 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
                         {/* Chat Toggle Button */}
                         <button
                             onClick={toggleChat}
-                            className={`p-3 rounded-full transition-all ${isChatOpen ? 'bg-white text-black' : 'bg-black/50 text-white hover:bg-black/70'}`}
+                            className={`p-3 rounded-full transition-all relative ${isChatOpen ? 'bg-white text-black' : 'bg-black/50 text-white hover:bg-black/70'}`}
                         >
+                            {unreadCount > 0 && !isChatOpen && (
+                                <span className="absolute top-0 right-0 block h-3 w-3 rounded-full ring-2 ring-gray-900 bg-red-500"></span>
+                            )}
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
                         </button>
 
@@ -382,7 +441,19 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
                         <div className="absolute bottom-2 left-2 text-[10px] bg-black/50 text-white px-1 rounded">You</div>
                     </div>
                 </div>
-            ) : null}
+            ) : (
+                // HIDDEN VIDEO ELEMENT FOR TEXT MODE AUDIO
+                <div className="hidden">
+                    <video
+                        ref={remoteVideoRef}
+                        autoPlay
+                        playsInline
+                        className="w-0 h-0"
+                    />
+                    {/* We need a local ref to hold the stream so toggleMic works, even if not displaying video */}
+                    <video ref={localVideoRef} muted autoPlay className="w-0 h-0" />
+                </div>
+            )}
 
 
             {/* Chat Sidebar - Expanded to Full Width in Text Mode */}
@@ -419,6 +490,20 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
                     </div>
 
                     <div className="flex items-center gap-2">
+                        {/* Audio Toggle for Text Mode */}
+                        {user.mode === 'text' && (
+                            <button
+                                onClick={toggleMic}
+                                className={`p-2 rounded-full transition-all ${isMuted ? 'bg-red-500/20 text-red-500' : 'bg-indigo-500/20 text-indigo-400'}`}
+                                title={isMuted ? "Unmute" : "Mute"}
+                            >
+                                {isMuted ? (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" strokeWidth="2" /></svg>
+                                ) : (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                                )}
+                            </button>
+                        )}
                         <button
                             onClick={onSkip}
                             className="text-yellow-500 hover:text-yellow-400 px-3 py-1 bg-yellow-500/10 rounded-lg text-xs font-bold transition-colors"

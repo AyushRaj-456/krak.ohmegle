@@ -15,10 +15,18 @@ export class QueueManager {
 
         if (matchType === 'golden') {
             // Golden: Match with opposite gender only
-            queue = this.goldenVideoQueue;
+            if (user.mode === 'text') {
+                queue = this.goldenTextQueue;
+            } else {
+                queue = this.goldenVideoQueue;
+            }
         } else {
             // Regular matching
-            queue = this.videoQueue;
+            if (user.mode === 'text') {
+                queue = this.textQueue;
+            } else {
+                queue = this.videoQueue;
+            }
         }
 
         // Try to find a match
