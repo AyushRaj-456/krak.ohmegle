@@ -40,6 +40,8 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    // New state for manual audio toggle in Text Mode
+    const [isAudioEnabled, setIsAudioEnabled] = useState(false);
 
     // WebRTC Refs
     const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -145,16 +147,13 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
             // Initialize WebRTC
             setupWebRTC();
         } else if (user.mode === 'text') {
-            // Enable WebRTC for Audio in Text Mode
-            // Same handlers but we might need to be careful about not expecting video tracks?
-            // Actually, the handlers are generic enough. The main diff is setupWebRTC constraints.
-            // DUPLICATING LISTENERS for clarity and to allow 'text' mode access
+            // Enable WebRTC for Audio in Text Mode - MANUAL TRIGGER ONLY
 
             socket.on('offer', async (offer) => {
                 console.log("TextMode: Received offer");
                 if (!peerRef.current) {
                     pendingOffer.current = offer;
-                    // setupWebRTC will be called below
+                    // Wait for user to enable audio
                 } else {
                     if (isNegotiating.current) return;
                     isNegotiating.current = true;
@@ -187,7 +186,8 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
                 }
             });
 
-            setupWebRTC();
+            // DO NOT auto-setup WebRTC for text mode anymore.
+            // setupWebRTC(); 
         }
 
         return () => {
@@ -312,6 +312,14 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
         setMessages(prev => [...prev, { sender: 'me', text: inputText, timestamp: Date.now() }]);
         setInputText('');
         setInputText('');
+    };
+
+    // Manual Audio Enable for Text Mode
+    const enableAudioMode = async () => {
+        if (isAudioEnabled) return;
+        await setupWebRTC();
+        setIsAudioEnabled(true);
+        setIsMuted(false);
     };
 
     const toggleMic = () => {
@@ -490,20 +498,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
                     </div>
 
                     <div className="flex items-center gap-2">
-                        {/* Audio Toggle for Text Mode */}
-                        {user.mode === 'text' && (
-                            <button
-                                onClick={toggleMic}
-                                className={`p-2 rounded-full transition-all ${isMuted ? 'bg-red-500/20 text-red-500' : 'bg-indigo-500/20 text-indigo-400'}`}
-                                title={isMuted ? "Unmute" : "Mute"}
-                            >
-                                {isMuted ? (
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" strokeWidth="2" /></svg>
-                                ) : (
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-                                )}
-                            </button>
-                        )}
+                        {/* Mic Toggle Removed from Header for Text Mode, retained for Video/Audio */}
                         <button
                             onClick={onSkip}
                             className="text-yellow-500 hover:text-yellow-400 px-3 py-1 bg-yellow-500/10 rounded-lg text-xs font-bold transition-colors"
@@ -519,6 +514,40 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
                     </div>
                 </div>
 
+                {/* Audio Toggle Banner for Text Mode */}
+                {user.mode === 'text' && (
+                    <div className="bg-[#16161d] border-b border-white/5 p-2 flex items-center justify-between px-4 z-10">
+                        <span className="text-xs text-gray-400 font-medium tracking-wide">
+                            {isAudioEnabled ? "AUDIO ACTIVE" : "AUDIO CHAT"}
+                        </span>
+
+                        {!isAudioEnabled ? (
+                            <button
+                                onClick={enableAudioMode}
+                                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-lg hover:shadow-indigo-500/20"
+                            >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                                Turn On Audio
+                            </button>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={toggleMic}
+                                    className={`p-1.5 rounded-full transition-all ${isMuted ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}
+                                >
+                                    {isMuted ? (
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" strokeWidth="2" /></svg>
+                                    ) : (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] text-green-500 font-bold animate-pulse">LIVE</span>
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                                        </div>
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
                 <div className={`flex-1 overflow-y-auto p-4 space-y-3 z-10 transition-colors duration-300 ${user.mode === 'text' ? 'bg-transparent' : 'bg-[#0a0a0f]'}`}>
                     {/* Messages */}
                     {!partnerChatOpen && user.mode !== 'text' && (
@@ -574,45 +603,47 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
             />
 
             {/* Partner Disconnected Modal */}
-            {partnerDisconnected && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-[#16161d] p-8 rounded-2xl border border-white/10 shadow-2xl max-w-md w-full text-center relative overflow-hidden">
-                        {/* Background Splashes */}
-                        <div className="absolute top-0 left-0 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-                        <div className="absolute bottom-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+            {
+                partnerDisconnected && (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="bg-[#16161d] p-8 rounded-2xl border border-white/10 shadow-2xl max-w-md w-full text-center relative overflow-hidden">
+                            {/* Background Splashes */}
+                            <div className="absolute top-0 left-0 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+                            <div className="absolute bottom-0 right-0 w-32 h-32 bg-blue-600/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
 
-                        <div className="relative z-10">
-                            <div className="w-16 h-16 bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
-                                <span className="text-3xl">👻</span>
-                            </div>
+                            <div className="relative z-10">
+                                <div className="w-16 h-16 bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-white/5">
+                                    <span className="text-3xl">👻</span>
+                                </div>
 
-                            <h2 className="text-2xl font-bold text-white mb-2">Partner Disconnected</h2>
-                            <p className="text-gray-400 mb-8">
-                                The other person has left the chat.<br />
-                                What would you like to do next?
-                            </p>
+                                <h2 className="text-2xl font-bold text-white mb-2">Partner Disconnected</h2>
+                                <p className="text-gray-400 mb-8">
+                                    The other person has left the chat.<br />
+                                    What would you like to do next?
+                                </p>
 
-                            <div className="flex flex-col gap-3">
-                                <button
-                                    onClick={onSkip}
-                                    className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-indigo-600/20 flex items-center justify-center gap-2"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                                    Search for Others
-                                </button>
+                                <div className="flex flex-col gap-3">
+                                    <button
+                                        onClick={onSkip}
+                                        className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-indigo-600/20 flex items-center justify-center gap-2"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                        Search for Others
+                                    </button>
 
-                                <button
-                                    onClick={onLeave}
-                                    className="w-full py-3.5 bg-[#1f1f28] hover:bg-[#2a2a35] text-gray-300 font-medium rounded-xl transition-all border border-white/5 hover:border-white/10 flex items-center justify-center gap-2"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                                    Back to Home
-                                </button>
+                                    <button
+                                        onClick={onLeave}
+                                        className="w-full py-3.5 bg-[#1f1f28] hover:bg-[#2a2a35] text-gray-300 font-medium rounded-xl transition-all border border-white/5 hover:border-white/10 flex items-center justify-center gap-2"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                                        Back to Home
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
