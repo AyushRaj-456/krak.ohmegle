@@ -24,36 +24,13 @@ const logWithTime = (...args: any[]) => {
     console.log(`[${new Date().toISOString().split('T')[1].split('.')[0]}]`, ...args);
 };
 
-const formatTime = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-};
 
-const CallTimer = () => {
-    const [seconds, setSeconds] = useState(0);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setSeconds(s => s + 1);
-        }, 1000);
-        return () => clearInterval(interval);
-    }, []);
-
-    return (
-        <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full text-white font-mono flex items-center gap-2 border border-white/10">
-            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-            {formatTime(seconds)}
-        </div>
-    );
-};
 
 export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, user }) => {
     // Chat Toggle State
     // Default chat to OPEN if in text mode
     const [isChatOpen, setIsChatOpen] = useState(user.mode === 'text');
     const [partnerChatOpen, setPartnerChatOpen] = useState(false);
-    const [unreadCount, setUnreadCount] = useState(0);
 
     // Existing State
     const [messages, setMessages] = useState<Message[]>([]);
@@ -104,7 +81,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
         socket.on('message', (msg: { text: string }) => {
             setMessages(prev => [...prev, { sender: 'partner', text: msg.text, timestamp: Date.now() }]);
             if (!isChatOpenRef.current && user.mode !== 'text') {
-                setUnreadCount(prev => prev + 1);
+                // setUnreadCount(prev => prev + 1); 
             }
         });
 
@@ -305,12 +282,12 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
         const newState = !isChatOpen;
         setIsChatOpen(newState);
         if (newState) {
-            setUnreadCount(0);
+            // setUnreadCount(0);
         }
         socket.emit('chat_status', { roomId: matchData.roomId, isOpen: newState });
     };
 
-    const handleReport = (reason: string, file: File | null) => {
+    const handleReport = () => {
         setIsReportModalOpen(false);
         alert("Report submitted successfully.");
     };
