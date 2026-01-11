@@ -10,59 +10,6 @@ import AlertModal from './components/AlertModal';
 import type { MatchData, User, MatchPreferences, UserTokens } from './types';
 
 const Main: React.FC = () => {
-  // Project Sunset Overlay - Backend Suspended (Blocks Everything)
-  // Return immediately to prevent any other logic/hooks from running or rendering
-  return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Blurred Background with AuthPage */}
-      <div className="absolute inset-0 z-0 blur-sm pointer-events-none">
-        <AuthPage onAuth={() => { }} />
-      </div>
-
-      {/* Overlay */}
-      <div className="absolute inset-0 z-[9999] bg-black/60 flex items-center justify-center p-6 animate-in fade-in duration-1000">
-        <div className="text-center space-y-8 max-w-4xl relative p-12 rounded-3xl border border-purple-500/30 bg-black/40 backdrop-blur-3xl shadow-2xl shadow-purple-500/10">
-          {/* Background Glow inside the card */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-purple-600/10 rounded-3xl blur-3xl -z-10"></div>
-
-          <div className="flex flex-col items-center gap-2">
-            <h1 className="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-500 tracking-wider font-mono drop-shadow-2xl">
-              Backend Server has been stopped
-            </h1>
-            <span className="text-sm md:text-base text-gray-600 font-medium">
-              (by developer)
-            </span>
-          </div>
-
-          <div className="space-y-4">
-            <h2 className="text-xl md:text-3xl text-gray-300 font-medium leading-relaxed max-w-2xl mx-auto">
-              The developer can’t afford a $50/month backend server 🥺💔
-            </h2>
-          </div>
-
-          <div className="pt-8 flex flex-col items-center gap-8">
-            <button
-              onClick={() => window.location.href = 'https://www.google.com'}
-              className="group relative px-8 py-4 bg-[#0f0f14] hover:bg-[#1a1a24] text-white font-bold rounded-2xl border border-white/10 hover:border-purple-500/50 shadow-2xl transition-all duration-300 transform hover:scale-105 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <span className="relative flex items-center gap-3 text-lg">
-                <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Exit Website
-              </span>
-            </button>
-
-            <p className="text-orange-500 font-mono text-sm tracking-wide font-medium opacity-90">
-              Have a great day ahead - KRAK(Σ)N
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   const { socket, isConnected } = useSocket();
   const { currentUser, userProfile, loading: authLoading, signOut } = useAuth();
 
@@ -295,7 +242,7 @@ const Main: React.FC = () => {
         socket={socket}
         user={{
           ...userProfile,
-          mode: 'text', // This will be set from preferences
+          mode: lastMatchPreferences?.mode || 'text', // Pass mode from preferences
           filters: {}
         }}
         matchData={match}

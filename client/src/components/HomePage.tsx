@@ -118,11 +118,16 @@ export const HomePage: React.FC<HomePageProps> = ({
         }
     }, [activeSection, leaderboardType]);
 
+    const [selectedMode, setSelectedMode] = useState<'video' | 'text'>('text'); // Default to text
+    const [showVideoPopup, setShowVideoPopup] = useState(false);
+
     const handleJoinRoom = async () => {
-        // Enforce Toggles
-        if (!cameraAllowed || !micAllowed) {
-            onAlert("⚠️ You must enable both Camera and Microphone access above to join!");
-            return;
+        // Enforce Toggles ONLY for Video Mode
+        if (selectedMode === 'video') {
+            if (!cameraAllowed || !micAllowed) {
+                onAlert("⚠️ You must enable both Camera and Microphone access above to join Video Chat!");
+                return;
+            }
         }
 
         // Proceed
@@ -131,7 +136,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             gender: preferredGender || undefined,
             language: preferredLanguage || undefined,
             mood: mood || undefined,
-            mode: 'video',
+            mode: selectedMode,
             matchType
         };
         onJoinRoom(preferences);
@@ -752,6 +757,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                             <div className={`bg-[#16161d]/80 backdrop-blur-xl rounded-2xl p-6 border border-white/5 shadow-2xl transition-all duration-500 ease-in-out ${isStatsHovered ? 'lg:flex-[1.4]' : 'lg:flex-1'}`}>
                                 <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
                                     <h2 className="text-2xl font-bold text-white">Match Preferences</h2>
+
                                     <div className="flex flex-col items-start lg:items-end gap-1 w-full lg:w-auto">
                                         <div
                                             onMouseEnter={() => setIsStatsHovered(true)}
@@ -857,6 +863,60 @@ export const HomePage: React.FC<HomePageProps> = ({
                                                 </div>
                                                 <span className="text-2xl filter blur-[1px]">⭐</span>
                                             </label>
+                                        </div>
+                                    </div>
+
+                                    {/* Chat Mode Selection */}
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2 text-gray-400">
+                                            Chat Mode
+                                        </label>
+                                        <div className="bg-[#0f0f14] p-1 rounded-lg border border-white/5 flex items-center relative gap-1">
+                                            <button
+                                                onClick={() => setSelectedMode('text')}
+                                                className={`relative z-10 flex-1 px-4 py-3 rounded-md text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 ${selectedMode === 'text' ? 'text-white' : 'text-gray-400 hover:text-white'
+                                                    }`}
+                                            >
+                                                <span>💬</span> Text Chat
+                                            </button>
+
+                                            <div
+                                                className="relative z-10 flex-1 group"
+                                                onMouseEnter={() => setShowVideoPopup(true)}
+                                                onMouseLeave={() => setShowVideoPopup(false)}
+                                            >
+                                                <button
+                                                    disabled
+                                                    className={`w-full px-4 py-3 rounded-md text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 text-gray-400 cursor-not-allowed opacity-50 blur-[0.5px]`}
+                                                >
+                                                    <span>📹</span> Video Chat
+                                                </button>
+
+                                                {/* Video Server Stopped Popup */}
+                                                <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-80 bg-[#0f0f14] border border-white/10 rounded-xl p-5 shadow-2xl transition-all duration-300 pointer-events-none z-50 ${showVideoPopup ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
+                                                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-[#0f0f14] border-b border-r border-white/10 rotate-45"></div>
+
+                                                    <div className="text-center">
+                                                        <h3 className="text-[#ff6b6b] font-bold text-lg mb-1">Video Server Stopped</h3>
+                                                        <span className="text-xs text-gray-500 block mb-3">(by developer)</span>
+
+                                                        <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+                                                            The developer can't afford a $50/month backend server for video calls 🥺💔
+                                                        </p>
+
+                                                        <div className="bg-indigo-600/10 text-indigo-400 text-xs font-bold py-2 px-3 rounded-lg border border-indigo-500/20">
+                                                            But you can still use Text Chat!
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Sliding Background - Only for Text Mode */}
+                                            {selectedMode === 'text' && (
+                                                <div
+                                                    className="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-indigo-600 rounded-md shadow-lg shadow-indigo-600/20 transition-all duration-300 ease-out"
+                                                />
+                                            )}
                                         </div>
                                     </div>
 
