@@ -218,14 +218,17 @@ export class UserManager {
 
         // Signaling Events
         socket.on('offer', ({ roomId, offer }) => {
+            console.log(`[Signaling] Offer relayed in room ${roomId} from ${socket.id}`);
             socket.to(roomId).emit('offer', offer);
         });
 
         socket.on('answer', ({ roomId, answer }) => {
+            console.log(`[Signaling] Answer relayed in room ${roomId} from ${socket.id}`);
             socket.to(roomId).emit('answer', answer);
         });
 
         socket.on('ice_candidate', ({ roomId, candidate }) => {
+            console.log(`[Signaling] ICE Candidate relayed in room ${roomId} from ${socket.id}`);
             socket.to(roomId).emit('ice_candidate', candidate);
         });
 

@@ -11,10 +11,14 @@ interface RoomProps {
     onSkip: () => void;
 }
 
+// Expanded Free STUN Servers
 const SERVERS = {
     iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' },
+        { urls: 'stun:stun4.l.google.com:19302' },
     ],
     iceCandidatePoolSize: 10,
 };
@@ -22,8 +26,6 @@ const SERVERS = {
 const logWithTime = (...args: any[]) => {
     console.log(`[${new Date().toISOString().split('T')[1].split('.')[0]}]`, ...args);
 };
-
-
 
 export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, user }) => {
     // Chat Toggle State
@@ -240,8 +242,19 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
                 logWithTime("Added local track:", track.kind);
             });
 
-            peer.oniceconnectionstatechange = () => { /* ... */ };
-            peer.onconnectionstatechange = () => { /* ... */ };
+            peer.oniceconnectionstatechange = () => {
+                logWithTime("ICE Connection State Change:", peer.iceConnectionState);
+                if (peer.iceConnectionState === 'failed' || peer.iceConnectionState === 'disconnected') {
+                    logWithTime("ICE Connection Failed/Disconnected. This usually indicates a NAT/Firewall issue.");
+                }
+            };
+            peer.onconnectionstatechange = () => {
+                logWithTime("Peer Connection State Change:", peer.connectionState);
+            };
+            peer.onsignalingstatechange = () => {
+                logWithTime("Signaling State Change:", peer.signalingState);
+            };
+
             peer.ontrack = (event) => {
                 logWithTime("Received remote track:", event.track.kind);
                 let remoteStream = event.streams[0];
@@ -250,7 +263,7 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
                 }
                 if (remoteVideoRef.current) {
                     remoteVideoRef.current.srcObject = remoteStream;
-                    remoteVideoRef.current.play();
+                    remoteVideoRef.current.play().catch(e => console.error("Error playing remote video:", e));
                 }
                 // Also play in audio element if it exists (for text mode)
                 // Actually if we reuse remoteVideoRef for audio in text mode (it's a video tag), it works for audio too.
@@ -259,8 +272,15 @@ export const Room: React.FC<RoomProps> = ({ socket, matchData, onLeave, onSkip, 
 
             peer.onicecandidate = (event) => {
                 if (event.candidate) {
+                    logWithTime("Generated ICE Candidate:", event.candidate.candidate);
                     socket.emit('ice_candidate', { roomId: matchData.roomId, candidate: event.candidate });
+                } else {
+                    logWithTime("End of ICE Candidates");
                 }
+            };
+
+            peer.onicecandidateerror = (event: any) => {
+                console.error("ICE Candidate Error:", event);
             };
 
             if (pendingOffer.current) {
