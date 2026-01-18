@@ -11,6 +11,6 @@ services:
       - key: PORT
         value: 10000
       - key: CLIENT_URL
-        value: https://krak-ohmegle-czrdg9mxg-ayushs-projects-20d7a4c1.vercel.app
+        value: https://krak-ohmegle-jh4z5rvla-ayushs-projects-20d7a4c1.vercel.app
       - key: FIREBASE_SERVICE_ACCOUNT
         sync: false # You must manually add this value in Render Dashboard
